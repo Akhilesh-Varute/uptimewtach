@@ -36,7 +36,10 @@ export async function POST(req: NextRequest) {
     .insert({ user_id: user.id, title, description: description ?? "", slug: cleanSlug })
     .select().single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    if (error.code === "23505") return NextResponse.json({ error: "A status page with this slug already exists. Choose a different URL." }, { status: 409 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   if (monitor_ids?.length) {
     await getSupabaseAdmin().from("status_page_monitors").insert(
