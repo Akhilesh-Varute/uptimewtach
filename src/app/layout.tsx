@@ -8,6 +8,11 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "UptimeWatch — Simple Uptime Monitoring & Status Pages",
   description: "Monitor your websites and APIs 24/7. Get instant email alerts when your site goes down. Free uptime monitoring for developers and small teams.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
