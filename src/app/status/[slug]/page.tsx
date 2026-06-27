@@ -2,6 +2,8 @@ import { Activity, CheckCircle, XCircle } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
+type DayBar = { date: string; uptime: number };
+
 type MonitorRow = {
   id: string;
   name: string;
@@ -9,15 +11,17 @@ type MonitorRow = {
   status: "up" | "down" | "pending";
   uptime: number;
   last_checked_at: string | null;
+  avg_response_ms: number | null;
+  days: DayBar[];
 };
 
 const DEMO_DATA = {
   page: { title: "Acme Corp Status", description: "Real-time status for all Acme services." },
   monitors: [
-    { id: "1", name: "Website", display_name: "Website", status: "up" as const, uptime: 99.98, last_checked_at: new Date().toISOString() },
-    { id: "2", name: "API", display_name: "API", status: "up" as const, uptime: 99.91, last_checked_at: new Date().toISOString() },
-    { id: "3", name: "Dashboard", display_name: "Dashboard", status: "down" as const, uptime: 97.30, last_checked_at: new Date().toISOString() },
-    { id: "4", name: "CDN", display_name: "CDN", status: "up" as const, uptime: 100.00, last_checked_at: new Date().toISOString() },
+    { id: "1", name: "Website", display_name: "Website", status: "up" as const, uptime: 99.98, last_checked_at: new Date().toISOString(), avg_response_ms: 142, days: Array.from({ length: 90 }, (_, i) => ({ date: String(i), uptime: Math.random() > 0.02 ? 100 : 0 })) },
+    { id: "2", name: "API", display_name: "API", status: "up" as const, uptime: 99.91, last_checked_at: new Date().toISOString(), avg_response_ms: 89, days: Array.from({ length: 90 }, (_, i) => ({ date: String(i), uptime: Math.random() > 0.01 ? 100 : 0 })) },
+    { id: "3", name: "Dashboard", display_name: "Dashboard", status: "down" as const, uptime: 97.30, last_checked_at: new Date().toISOString(), avg_response_ms: null, days: Array.from({ length: 90 }, (_, i) => ({ date: String(i), uptime: Math.random() > 0.05 ? 100 : 0 })) },
+    { id: "4", name: "CDN", display_name: "CDN", status: "up" as const, uptime: 100.00, last_checked_at: new Date().toISOString(), avg_response_ms: 23, days: Array.from({ length: 90 }, () => ({ date: "x", uptime: 100 })) },
   ],
 };
 
@@ -32,25 +36,74 @@ async function getStatusPage(slug: string) {
 
   if (error || !page) return null;
 
-  const monitorRows = ((page.status_page_monitors ?? []) as Array<{ sort_order: number; display_name: string | null; monitors: { id: string; name: string; status: string } }>)
+  const monitorRows = ((page.status_page_monitors ?? []) as Array<{ sort_order: number; display_name: string | null; monitors: { id: string; name: string; status: string; last_checked_at: string | null } }>)
     .sort((a, b) => a.sort_order - b.sort_order);
 
   const monitors = await Promise.all(
     monitorRows.map(async (row) => {
       const monitor = row.monitors;
       const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+
       const { data: checks } = await getSupabaseAdmin()
         .from("monitor_checks")
-        .select("status")
+        .select("status, response_time_ms, checked_at")
         .eq("monitor_id", monitor.id)
-        .gte("checked_at", since);
+        .gte("checked_at", since)
+        .order("checked_at", { ascending: true });
+
       const total = checks?.length ?? 0;
       const up = checks?.filter((c: { status: string }) => c.status === "up").length ?? 0;
-      return { ...monitor, display_name: row.display_name ?? monitor.name, uptime: total > 0 ? (up / total) * 100 : 100 };
+      const uptime = total > 0 ? (up / total) * 100 : 100;
+
+      const responseTimes = checks?.map((c: { response_time_ms: number | null }) => c.response_time_ms).filter((t): t is number => t !== null) ?? [];
+      const avg_response_ms = responseTimes.length > 0 ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length) : null;
+
+      // Build 90-day bars
+      const dayMap: Record<string, { up: number; total: number }> = {};
+      for (let i = 89; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        dayMap[d.toISOString().slice(0, 10)] = { up: 0, total: 0 };
+      }
+      for (const c of checks ?? []) {
+        const day = (c as { checked_at: string }).checked_at.slice(0, 10);
+        if (dayMap[day]) {
+          dayMap[day].total++;
+          if ((c as { status: string }).status === "up") dayMap[day].up++;
+        }
+      }
+      const days: DayBar[] = Object.entries(dayMap).map(([date, { up, total }]) => ({
+        date,
+        uptime: total > 0 ? (up / total) * 100 : 100,
+      }));
+
+      return { ...monitor, display_name: row.display_name ?? monitor.name, uptime, avg_response_ms, days };
     })
   );
 
   return { page, monitors };
+}
+
+function UptimeBar({ days }: { days: DayBar[] }) {
+  return (
+    <div className="flex gap-0.5 mt-3">
+      {days.map((d, i) => (
+        <div
+          key={i}
+          title={`${d.date}: ${d.uptime.toFixed(1)}%`}
+          className={`h-6 flex-1 rounded-sm ${d.uptime === 100 ? "bg-green-500" : d.uptime >= 50 ? "bg-yellow-500" : "bg-red-500"} opacity-80 hover:opacity-100`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function timeAgo(iso: string | null) {
+  if (!iso) return "never";
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  return `${Math.floor(diff / 3600)}h ago`;
 }
 
 export default async function StatusPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -85,16 +138,27 @@ export default async function StatusPage({ params }: { params: Promise<{ slug: s
         {/* Monitors */}
         <div className="space-y-3">
           {monitors.map((m) => (
-            <div key={m.id} className="bg-gray-900 border border-gray-800 rounded-xl px-5 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`w-2.5 h-2.5 rounded-full ${m.status === "up" ? "bg-green-400" : m.status === "down" ? "bg-red-400" : "bg-gray-400"}`} />
-                <span className="font-medium">{m.display_name}</span>
+            <div key={m.id} className="bg-gray-900 border border-gray-800 rounded-xl px-5 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${m.status === "up" ? "bg-green-400" : m.status === "down" ? "bg-red-400" : "bg-gray-400"}`} />
+                  <span className="font-medium">{m.display_name}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  {m.avg_response_ms !== null && (
+                    <span className="text-gray-500 text-xs">{m.avg_response_ms}ms</span>
+                  )}
+                  <span className="text-gray-400 text-sm">{m.uptime.toFixed(2)}%</span>
+                  <span className={`text-xs font-semibold px-2 py-1 rounded ${m.status === "up" ? "bg-green-950 text-green-400" : m.status === "down" ? "bg-red-950 text-red-400" : "bg-gray-800 text-gray-400"}`}>
+                    {m.status.toUpperCase()}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-6">
-                <span className="text-gray-400 text-sm">{m.uptime.toFixed(2)}% uptime</span>
-                <span className={`text-xs font-semibold px-2 py-1 rounded ${m.status === "up" ? "bg-green-950 text-green-400" : m.status === "down" ? "bg-red-950 text-red-400" : "bg-gray-800 text-gray-400"}`}>
-                  {m.status.toUpperCase()}
-                </span>
+              <UptimeBar days={m.days} />
+              <div className="flex justify-between mt-1.5 text-gray-600 text-xs">
+                <span>90 days ago</span>
+                <span>Checked {timeAgo(m.last_checked_at)}</span>
+                <span>Today</span>
               </div>
             </div>
           ))}
