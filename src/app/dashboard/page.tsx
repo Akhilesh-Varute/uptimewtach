@@ -12,6 +12,7 @@ import CreateStatusPageModal from "@/components/CreateStatusPageModal";
 export default function DashboardPage() {
   const { user } = useUser();
   const [monitors, setMonitors] = useState<Monitor[]>([]);
+  const [statusPages, setStatusPages] = useState<{ id: string; title: string; slug: string }[]>([]);
   const [dbUser, setDbUser] = useState<{ plan: string } | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [showStatusPage, setShowStatusPage] = useState(false);
@@ -22,17 +23,25 @@ export default function DashboardPage() {
     setMonitors(Array.isArray(m) ? m : []);
   }
 
+  async function deleteStatusPage(id: string) {
+    await fetch(`/api/status-pages/${id}`, { method: "DELETE" });
+    setStatusPages((prev) => prev.filter((p) => p.id !== id));
+  }
+
   useEffect(() => {
     async function init() {
       await fetch("/api/user", { method: "POST" });
-      const [uRes, mRes] = await Promise.all([
+      const [uRes, mRes, spRes] = await Promise.all([
         fetch("/api/user"),
         fetch("/api/monitors"),
+        fetch("/api/status-pages"),
       ]);
       const u = await uRes.json();
       const m = await mRes.json();
+      const sp = await spRes.json();
       setDbUser(u);
       setMonitors(Array.isArray(m) ? m : []);
+      setStatusPages(Array.isArray(sp) ? sp : []);
       setLoading(false);
     }
     init();
@@ -189,6 +198,40 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Status Pages */}
+        <div className="mt-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Status Pages</h2>
+            <button onClick={() => setShowStatusPage(true)} className="border border-gray-700 hover:border-gray-500 text-gray-300 px-3 py-1.5 rounded-lg text-sm font-medium">
+              + New
+            </button>
+          </div>
+          {statusPages.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 text-sm border border-gray-800 rounded-xl">
+              No status pages yet. Create one to share uptime with your users.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {statusPages.map((sp) => (
+                <div key={sp.id} className="bg-gray-900 border border-gray-800 rounded-xl px-5 py-4 flex items-center justify-between">
+                  <div>
+                    <div className="font-medium">{sp.title}</div>
+                    <div className="text-gray-500 text-sm">/status/{sp.slug}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <a href={`/status/${sp.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300 px-3 py-1.5 border border-gray-700 rounded-lg">
+                      View
+                    </a>
+                    <button onClick={() => deleteStatusPage(sp.id)} className="text-sm text-red-400 hover:text-red-300 px-3 py-1.5 border border-gray-800 rounded-lg">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Upgrade section */}
         {plan === "free" && (
           <div className="mt-12 bg-blue-950/30 border border-blue-800 rounded-xl p-6 flex items-center justify-between">
@@ -211,6 +254,7 @@ export default function DashboardPage() {
         <CreateStatusPageModal
           monitors={monitors}
           onClose={() => setShowStatusPage(false)}
+          onCreated={(sp) => { setStatusPages((prev) => [sp, ...prev]); setShowStatusPage(false); }}
         />
       )}
     </div>

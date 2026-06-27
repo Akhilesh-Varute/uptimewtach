@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
@@ -35,4 +36,23 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
   );
 
   return NextResponse.json({ page, monitors: withUptime });
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { slug } = await params;
+
+  const { data: user } = await getSupabaseAdmin()
+    .from("users").select("id").eq("clerk_id", userId).single();
+  if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  await getSupabaseAdmin()
+    .from("status_pages")
+    .delete()
+    .eq("id", slug)
+    .eq("user_id", user.id);
+
+  return new NextResponse(null, { status: 204 });
 }

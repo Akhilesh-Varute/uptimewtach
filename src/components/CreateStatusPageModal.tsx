@@ -7,9 +7,10 @@ import { Monitor } from "@/lib/supabase";
 type Props = {
   monitors: Monitor[];
   onClose: () => void;
+  onCreated?: (sp: { id: string; title: string; slug: string }) => void;
 };
 
-export default function CreateStatusPageModal({ monitors, onClose }: Props) {
+export default function CreateStatusPageModal({ monitors, onClose, onCreated }: Props) {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
@@ -34,6 +35,7 @@ export default function CreateStatusPageModal({ monitors, onClose }: Props) {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "Failed"); return; }
+      onCreated?.({ id: data.id, title, slug: data.slug });
       setCreated(slug);
     } finally {
       setLoading(false);
