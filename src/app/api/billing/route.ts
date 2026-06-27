@@ -28,27 +28,28 @@ export async function POST(req: NextRequest) {
 
   setupLS();
 
-  const { data, error } = await createCheckout(
-    process.env.LS_STORE_ID!,
-    VARIANT_IDS[plan],
-    {
-      checkoutData: {
-        email: user.email,
-        custom: { user_id: user.id, plan },
-      },
-      checkoutOptions: {
-        embed: false,
-      },
-      productOptions: {
-        redirectUrl: `${APP_URL}/dashboard?upgraded=true`,
-        receiptButtonText: "Go to Dashboard",
-      },
-    }
-  );
+  try {
+    const { data, error } = await createCheckout(
+      process.env.LS_STORE_ID!,
+      VARIANT_IDS[plan],
+      {
+        checkoutData: {
+          email: user.email,
+          custom: { user_id: user.id, plan },
+        },
+        checkoutOptions: { embed: false },
+        productOptions: {
+          redirectUrl: `${APP_URL}/dashboard?upgraded=true`,
+          receiptButtonText: "Go to Dashboard",
+        },
+      }
+    );
 
-  if (error || !data) return NextResponse.json({ error: "Failed to create checkout" }, { status: 500 });
-
-  return NextResponse.json({ url: data.data.attributes.url });
+    if (error || !data) return NextResponse.json({ error: "Failed to create checkout" }, { status: 500 });
+    return NextResponse.json({ url: data.data.attributes.url });
+  } catch {
+    return NextResponse.json({ error: "Payment service unavailable. Please try again." }, { status: 500 });
+  }
 }
 
 // Customer portal — list recent orders for now (LS portal link)
