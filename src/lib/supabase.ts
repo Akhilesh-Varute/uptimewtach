@@ -5,11 +5,22 @@ export type Monitor = {
   user_id: string;
   name: string;
   url: string;
+  monitor_type: "http" | "tcp" | "heartbeat";
+  host: string | null;
+  port: number | null;
   interval_seconds: number;
   is_active: boolean;
   status: "pending" | "up" | "down";
   last_checked_at: string | null;
   created_at: string;
+  webhook_url: string | null;
+  keyword: string | null;
+  ssl_expires_at: string | null;
+  ssl_days_remaining: number | null;
+  ssl_last_alerted_days: number | null;
+  heartbeat_token: string | null;
+  heartbeat_grace_seconds: number | null;
+  heartbeat_last_pinged_at: string | null;
 };
 
 export type MonitorCheck = {
@@ -36,6 +47,7 @@ export type StatusPage = {
   slug: string;
   title: string;
   description: string;
+  custom_domain: string | null;
   created_at: string;
 };
 
@@ -49,7 +61,7 @@ export type User = {
   created_at: string;
 };
 
-// Lazy singletons — only initialized on first call
+// Lazy singletons - only initialized on first call
 let _admin: SupabaseClient | null = null;
 let _anon: SupabaseClient | null = null;
 

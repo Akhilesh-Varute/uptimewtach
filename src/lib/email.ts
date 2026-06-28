@@ -25,6 +25,33 @@ export async function sendDownAlert(to: string, monitorName: string, url: string
   });
 }
 
+export async function sendSslExpiryAlert(
+  to: string,
+  monitorName: string,
+  url: string,
+  daysRemaining: number
+) {
+  const urgency = daysRemaining <= 7 ? "🚨" : "⚠️";
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `${urgency} ${monitorName} — SSL cert expires in ${daysRemaining} days`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+        <h2 style="color:#f59e0b">${urgency} SSL Certificate Expiring Soon</h2>
+        <p>The SSL certificate for <strong>${monitorName}</strong> (<a href="${url}">${url}</a>) expires in <strong>${daysRemaining} days</strong>.</p>
+        <p style="color:#6b7280;font-size:14px">Renew your certificate before it expires to avoid downtime and browser warnings.</p>
+        <a href="${APP_URL}/dashboard" style="display:inline-block;margin-top:16px;padding:10px 20px;background:#3b82f6;color:white;border-radius:6px;text-decoration:none">
+          View Dashboard
+        </a>
+        <p style="color:#9ca3af;font-size:12px;margin-top:24px">
+          UptimeWatch · <a href="${APP_URL}/dashboard" style="color:#9ca3af">Manage alerts</a>
+        </p>
+      </div>
+    `,
+  });
+}
+
 export async function sendUpAlert(to: string, monitorName: string, url: string) {
   await resend.emails.send({
     from: FROM,

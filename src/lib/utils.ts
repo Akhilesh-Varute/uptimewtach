@@ -32,7 +32,7 @@ export function getStatusBg(status: string) {
 }
 
 export const PLAN_LIMITS = {
-  free: { monitors: 3, interval: 300 },
+  free: { monitors: 10, interval: 300 },
   starter: { monitors: 20, interval: 60 },
   pro: { monitors: 100, interval: 30 },
   business: { monitors: 500, interval: 10 },

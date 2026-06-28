@@ -46,7 +46,7 @@ export default async function HomePage() {
         </p>
         <div className="flex items-center justify-center gap-4">
           <Link href="/sign-up" className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold text-lg">
-            Start free — 3 monitors
+            Start free — 10 monitors
           </Link>
           <Link href="/status/demo" className="border border-gray-700 hover:border-gray-500 text-gray-300 px-8 py-3 rounded-lg font-semibold text-lg">
             See demo status page
@@ -72,15 +72,15 @@ export default async function HomePage() {
       </section>
 
       {/* Pricing */}
-      <section className="max-w-5xl mx-auto px-6 pb-24" id="pricing">
+      <section className="max-w-6xl mx-auto px-6 pb-24" id="pricing">
         <h2 className="text-3xl font-bold text-center mb-12">Simple pricing</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             {
               name: "Free",
               price: "$0",
               desc: "Perfect to start",
-              features: ["3 monitors", "5-minute checks", "1 status page", "Email alerts"],
+              features: ["10 monitors", "5-minute checks", "1 status page", "Email alerts", "7-day history"],
               cta: "Start free",
               href: "/sign-up",
               highlight: false,
@@ -88,7 +88,7 @@ export default async function HomePage() {
             {
               name: "Starter",
               price: "$19",
-              desc: "For small teams",
+              desc: "For indie developers",
               features: ["20 monitors", "1-minute checks", "3 status pages", "Email alerts", "30-day history"],
               cta: "Get started",
               href: "/sign-up",
@@ -98,18 +98,27 @@ export default async function HomePage() {
               name: "Pro",
               price: "$49",
               desc: "For growing teams",
-              features: ["100 monitors", "30-second checks", "Unlimited status pages", "Email + SMS alerts", "90-day history"],
+              features: ["100 monitors", "30-second checks", "Unlimited status pages", "Email alerts", "90-day history"],
+              cta: "Get started",
+              href: "/sign-up",
+              highlight: false,
+            },
+            {
+              name: "Business",
+              price: "$99",
+              desc: "For large teams",
+              features: ["500 monitors", "10-second checks", "Unlimited status pages", "Email alerts", "1-year history"],
               cta: "Get started",
               href: "/sign-up",
               highlight: false,
             },
           ].map((p) => (
-            <div key={p.name} className={`rounded-xl p-6 border ${p.highlight ? "border-blue-500 bg-blue-950/30" : "border-gray-800 bg-gray-900"}`}>
+            <div key={p.name} className={"rounded-xl p-6 border flex flex-col " + (p.highlight ? "border-blue-500 bg-blue-950/30" : "border-gray-800 bg-gray-900")}>
               {p.highlight && <div className="text-blue-400 text-xs font-semibold mb-2 uppercase tracking-wide">Most popular</div>}
               <div className="text-2xl font-bold mb-1">{p.name}</div>
               <div className="text-4xl font-bold mb-1">{p.price}<span className="text-gray-400 text-lg font-normal">/mo</span></div>
               <div className="text-gray-400 text-sm mb-6">{p.desc}</div>
-              <ul className="space-y-2 mb-8">
+              <ul className="space-y-2 mb-8 flex-1">
                 {p.features.map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
                     <CheckCircle size={14} className="text-green-400 shrink-0" />
@@ -117,7 +126,7 @@ export default async function HomePage() {
                   </li>
                 ))}
               </ul>
-              <Link href={p.href} className={`block text-center py-2 rounded-lg font-medium text-sm ${p.highlight ? "bg-blue-600 hover:bg-blue-500 text-white" : "border border-gray-700 hover:border-gray-500 text-gray-300"}`}>
+              <Link href={p.href} className={"block text-center py-2 rounded-lg font-medium text-sm " + (p.highlight ? "bg-blue-600 hover:bg-blue-500 text-white" : "border border-gray-700 hover:border-gray-500 text-gray-300")}>
                 {p.cta}
               </Link>
             </div>

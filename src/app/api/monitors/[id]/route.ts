@@ -46,10 +46,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!monitor) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();
-  const allowed = ["name", "is_active"];
+  const allowed = ["name", "is_active", "webhook_url", "keyword"];
   const updates: Record<string, unknown> = {};
   for (const key of allowed) {
-    if (key in body) updates[key] = body[key];
+    if (key in body) updates[key] = body[key] || null;
   }
 
   const { data, error } = await getSupabaseAdmin()

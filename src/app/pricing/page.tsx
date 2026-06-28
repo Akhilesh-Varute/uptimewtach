@@ -9,7 +9,7 @@ const plans = [
     period: "/mo",
     desc: "Perfect to get started",
     features: [
-      "3 monitors",
+      "10 monitors",
       "5-minute checks",
       "1 status page",
       "Email alerts",
