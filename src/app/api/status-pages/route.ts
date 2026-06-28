@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { PLAN_LIMITS } from "@/lib/utils";
 
 export async function GET() {
   const { userId } = await auth();
@@ -23,8 +24,22 @@ export async function POST(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data: user } = await getSupabaseAdmin()
-    .from("users").select("id").eq("clerk_id", userId).single();
+    .from("users").select("id, plan").eq("clerk_id", userId).single();
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+  const limit = PLAN_LIMITS[user.plan as keyof typeof PLAN_LIMITS]?.statusPages ?? 1;
+  if (limit !== null) {
+    const { count } = await getSupabaseAdmin()
+      .from("status_pages")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    if ((count ?? 0) >= limit) {
+      return NextResponse.json(
+        { error: "Status page limit reached for " + user.plan + " plan. Upgrade to create more." },
+        { status: 403 }
+      );
+    }
+  }
 
   const { title, description, slug, monitor_ids } = await req.json();
   if (!title || !slug) return NextResponse.json({ error: "title and slug required" }, { status: 400 });

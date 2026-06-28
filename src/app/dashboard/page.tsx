@@ -102,9 +102,11 @@ export default function DashboardPage() {
   }
 
   const plan = (dbUser?.plan ?? "free") as keyof typeof PLAN_LIMITS;
-  const limit = PLAN_LIMITS[plan]?.monitors ?? 10;
+  const monitorLimit = PLAN_LIMITS[plan]?.monitors ?? 10;
+  const spLimit = PLAN_LIMITS[plan]?.statusPages ?? 1;
   const upCount = monitors.filter((m) => m.status === "up").length;
   const downCount = monitors.filter((m) => m.status === "down").length;
+  const spAtLimit = spLimit !== null && statusPages.length >= spLimit;
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
@@ -131,16 +133,22 @@ export default function DashboardPage() {
           <div className="flex gap-3">
             <button
               onClick={() => setShowStatusPage(true)}
-              className="border border-gray-700 hover:border-gray-500 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium"
+              disabled={spAtLimit}
+              className={cn(
+                "border px-4 py-2 rounded-lg text-sm font-medium",
+                spAtLimit
+                  ? "border-gray-800 text-gray-600 cursor-not-allowed"
+                  : "border-gray-700 hover:border-gray-500 text-gray-300"
+              )}
             >
               + Status Page
             </button>
             <button
               onClick={() => setShowAdd(true)}
-              disabled={monitors.length >= limit}
+              disabled={monitors.length >= monitorLimit}
               className={cn(
                 "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium",
-                monitors.length >= limit
+                monitors.length >= monitorLimit
                   ? "bg-gray-800 text-gray-500 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-500 text-white"
               )}
@@ -154,7 +162,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div className="text-gray-400 text-sm mb-1">Total Monitors</div>
-            <div className="text-3xl font-bold">{monitors.length}<span className="text-gray-500 text-lg">/{limit}</span></div>
+            <div className="text-3xl font-bold">{monitors.length}<span className="text-gray-500 text-lg">/{monitorLimit}</span></div>
           </div>
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div className="text-gray-400 text-sm mb-1">Operational</div>
@@ -166,12 +174,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {monitors.length >= limit && (
+        {monitors.length >= monitorLimit && (
           <div className="bg-yellow-950 border border-yellow-800 rounded-lg px-4 py-3 mb-6 flex items-center justify-between">
             <span className="text-yellow-300 text-sm">Monitor limit reached for {plan} plan.</span>
-            <Link href="/pricing" className="text-yellow-400 hover:text-yellow-300 text-sm font-medium underline">
-              Upgrade
-            </Link>
+            <Link href="/pricing" className="text-yellow-400 hover:text-yellow-300 text-sm font-medium underline">Upgrade</Link>
           </div>
         )}
 
@@ -227,13 +233,36 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Status Pages */}
         <div className="mt-12">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Status Pages</h2>
-            <button onClick={() => setShowStatusPage(true)} className="border border-gray-700 hover:border-gray-500 text-gray-300 px-3 py-1.5 rounded-lg text-sm font-medium">
+            <div>
+              <h2 className="text-lg font-semibold">Status Pages</h2>
+              {spLimit !== null && (
+                <p className="text-gray-500 text-xs mt-0.5">{statusPages.length} / {spLimit} used</p>
+              )}
+            </div>
+            <button
+              onClick={() => setShowStatusPage(true)}
+              disabled={spAtLimit}
+              className={cn(
+                "border px-3 py-1.5 rounded-lg text-sm font-medium",
+                spAtLimit
+                  ? "border-gray-800 text-gray-600 cursor-not-allowed"
+                  : "border-gray-700 hover:border-gray-500 text-gray-300"
+              )}
+            >
               + New
             </button>
           </div>
+
+          {spAtLimit && (
+            <div className="bg-yellow-950 border border-yellow-800 rounded-lg px-4 py-3 mb-4 flex items-center justify-between">
+              <span className="text-yellow-300 text-sm">Status page limit reached for {plan} plan.</span>
+              <Link href="/pricing" className="text-yellow-400 hover:text-yellow-300 text-sm font-medium underline">Upgrade</Link>
+            </div>
+          )}
+
           {statusPages.length === 0 ? (
             <div className="text-center py-8 text-gray-500 text-sm border border-gray-800 rounded-xl">
               No status pages yet. Create one to share uptime with your users.
@@ -287,10 +316,7 @@ export default function DashboardPage() {
                           <Check size={14} />
                           {domainSaving ? "Saving…" : "Save"}
                         </button>
-                        <button
-                          onClick={cancelDomainEdit}
-                          className="p-2 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg"
-                        >
+                        <button onClick={cancelDomainEdit} className="p-2 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg">
                           <X size={16} />
                         </button>
                       </div>
@@ -348,6 +374,7 @@ function UpgradeButton({ plan }: { plan: string }) {
   }
   return (
     <button onClick={handleUpgrade} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium text-sm shrink-0">
-      Upgrade now</button>
+      Upgrade now
+    </button>
   );
 }

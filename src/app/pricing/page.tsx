@@ -42,9 +42,9 @@ const plans = [
     desc: "For growing teams",
     features: [
       "100 monitors",
-      "30-second checks",
+      "1-minute checks",
       "Unlimited status pages",
-      "Email alerts",
+      "Email & webhook alerts",
       "90-day history",
     ],
     cta: "Get started",
@@ -58,9 +58,9 @@ const plans = [
     desc: "For large teams",
     features: [
       "500 monitors",
-      "10-second checks",
+      "1-minute checks",
       "Unlimited status pages",
-      "Email alerts",
+      "Email & webhook alerts",
       "1-year history",
     ],
     cta: "Get started",
