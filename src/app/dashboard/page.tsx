@@ -348,7 +348,6 @@ function UpgradeButton({ plan }: { plan: string }) {
   }
   return (
     <button onClick={handleUpgrade} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium text-sm shrink-0">
-      Upgrade now
-    </button>
+      Upgrade now</button>
   );
 }

@@ -5,15 +5,17 @@ import { checkSslCert, getSslAlertThreshold } from "./ssl";
 import { sendWebhook } from "./webhooks";
 import { checkTcp } from "./tcp";
 
-export async function checkUrl(
-  url: string,
-  keyword?: string | null
-): Promise<{
+type CheckResult = {
   status: "up" | "down";
   response_time_ms: number | null;
   status_code: number | null;
   error_message: string | null;
-}> {
+};
+
+export async function checkUrl(
+  url: string,
+  keyword?: string | null
+): Promise<CheckResult> {
   const start = Date.now();
   try {
     const response = await axios.get(url, {
@@ -84,12 +86,7 @@ async function processMonitor(monitor: Monitor) {
     return;
   }
 
-  let result: {
-    status: "up" | "down";
-    response_time_ms: number | null;
-    status_code: number | null;
-    error_message: string | null;
-  };
+  let result: CheckResult;
 
   if (monitor.monitor_type === "tcp" && monitor.host && monitor.port) {
     const tcp = await checkTcp(monitor.host, monitor.port);
@@ -116,7 +113,7 @@ async function processMonitor(monitor: Monitor) {
   const newStatus = result.status;
 
   if (monitor.monitor_type !== "tcp" && monitor.url.startsWith("https://")) {
-    processSslCheck(monitor).catch(console.error);
+    await processSslCheck(monitor).catch(console.error);
   }
 
   await getSupabaseAdmin()
@@ -125,7 +122,7 @@ async function processMonitor(monitor: Monitor) {
     .eq("id", monitor.id);
 
   if (previousStatus !== "pending" && previousStatus !== newStatus) {
-    await handleStatusChange(monitor, previousStatus as "up" | "down", newStatus);
+    await handleStatusChange(monitor, previousStatus as "up" | "down", newStatus, result);
   }
 }
 
@@ -170,7 +167,6 @@ async function processSslCheck(monitor: Monitor) {
   const ssl = await checkSslCert(monitor.url);
   if (ssl.error === "not-https" || ssl.error === "invalid-url") return;
 
-  // Only write to DB when check succeeded — don't overwrite a valid value with null on transient errors
   if (ssl.error !== null) {
     console.warn("SSL check error for", monitor.url, ":", ssl.error);
     return;
@@ -205,7 +201,8 @@ async function processSslCheck(monitor: Monitor) {
       user.email,
       monitor.name,
       monitor.url,
-      ssl.daysRemaining
+      ssl.daysRemaining,
+      { expiresAt: ssl.expiresAt ?? null, issuer: ssl.issuer ?? null }
     );
   }
 
@@ -228,7 +225,8 @@ async function processSslCheck(monitor: Monitor) {
 async function handleStatusChange(
   monitor: Monitor,
   from: "up" | "down",
-  to: "up" | "down"
+  to: "up" | "down",
+  checkResult?: CheckResult
 ) {
   const { data: user } = await getSupabaseAdmin()
     .from("users")
@@ -250,7 +248,11 @@ async function handleStatusChange(
       started_at: now,
       status: "ongoing",
     });
-    if (user) await sendDownAlert(user.email, monitor.name, monitorUrl);
+    if (user) await sendDownAlert(user.email, monitor.name, monitorUrl, {
+      statusCode: checkResult?.status_code ?? null,
+      errorMessage: checkResult?.error_message ?? null,
+      intervalSeconds: monitor.interval_seconds,
+    });
     if (monitor.webhook_url) {
       await sendWebhook(monitor.webhook_url, {
         event: "down",
@@ -260,12 +262,24 @@ async function handleStatusChange(
       });
     }
   } else if (to === "up" && from === "down") {
+    const { data: incident } = await getSupabaseAdmin()
+      .from("incidents")
+      .select("started_at")
+      .eq("monitor_id", monitor.id)
+      .eq("status", "ongoing")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .single();
+
     await getSupabaseAdmin()
       .from("incidents")
       .update({ resolved_at: now, status: "resolved" })
       .eq("monitor_id", monitor.id)
       .eq("status", "ongoing");
-    if (user) await sendUpAlert(user.email, monitor.name, monitorUrl);
+
+    if (user) await sendUpAlert(user.email, monitor.name, monitorUrl, {
+      downtimeStartedAt: incident?.started_at ?? null,
+    });
     if (monitor.webhook_url) {
       await sendWebhook(monitor.webhook_url, {
         event: "up",
