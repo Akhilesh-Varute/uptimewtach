@@ -30,22 +30,27 @@ export async function POST(req: NextRequest) {
     .from("users").select("id, plan").eq("clerk_id", userId).single();
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
+  const planLimits = PLAN_LIMITS[user.plan as keyof typeof PLAN_LIMITS];
+
   const { count } = await getSupabaseAdmin()
     .from("monitors").select("id", { count: "exact", head: true }).eq("user_id", user.id);
-  const limit = PLAN_LIMITS[user.plan as keyof typeof PLAN_LIMITS]?.monitors ?? 10;
-  if ((count ?? 0) >= limit) {
+  if ((count ?? 0) >= (planLimits?.monitors ?? 10)) {
     return NextResponse.json({ error: "Monitor limit reached for " + user.plan + " plan" }, { status: 403 });
   }
 
   const body = await req.json();
   const { name, url, webhook_url, keyword, monitor_type, host, port, heartbeat_grace_seconds } = body;
 
+  if (webhook_url && !planLimits?.webhooks) {
+    return NextResponse.json({ error: "Webhook alerts require Pro plan or higher." }, { status: 403 });
+  }
+
   if (!name) {
     return NextResponse.json({ error: "name is required" }, { status: 400 });
   }
 
   const type: "http" | "tcp" | "heartbeat" = monitor_type === "tcp" ? "tcp" : monitor_type === "heartbeat" ? "heartbeat" : "http";
-  const interval = PLAN_LIMITS[user.plan as keyof typeof PLAN_LIMITS]?.interval ?? 300;
+  const interval = planLimits?.interval ?? 300;
 
   if (type === "heartbeat") {
     const token = crypto.randomBytes(24).toString("hex");
@@ -94,7 +99,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(data, { status: 201 });
   }
 
-  // HTTP monitor
   if (!url) return NextResponse.json({ error: "url is required" }, { status: 400 });
 
   if (webhook_url) {

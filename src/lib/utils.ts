@@ -32,8 +32,8 @@ export function getStatusBg(status: string) {
 }
 
 export const PLAN_LIMITS = {
-  free:     { monitors: 10,  interval: 300, statusPages: 1,    historyDays: 7   },
-  starter:  { monitors: 20,  interval: 60,  statusPages: 3,    historyDays: 30  },
-  pro:      { monitors: 100, interval: 60,  statusPages: null, historyDays: 90  },
-  business: { monitors: 500, interval: 60,  statusPages: null, historyDays: 365 },
+  free:     { monitors: 10,  interval: 300, statusPages: 1,    historyDays: 7,   webhooks: false, apiAccess: false, customDomains: false },
+  starter:  { monitors: 20,  interval: 60,  statusPages: 3,    historyDays: 30,  webhooks: false, apiAccess: true,  customDomains: false },
+  pro:      { monitors: 100, interval: 60,  statusPages: null, historyDays: 90,  webhooks: true,  apiAccess: true,  customDomains: true  },
+  business: { monitors: 500, interval: 60,  statusPages: null, historyDays: 365, webhooks: true,  apiAccess: true,  customDomains: true  },
 };

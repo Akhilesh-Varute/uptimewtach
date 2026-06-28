@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { PLAN_LIMITS } from "@/lib/utils";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -44,10 +45,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ sl
   const { slug } = await params;
 
   const { data: user } = await getSupabaseAdmin()
-    .from("users").select("id").eq("clerk_id", userId).single();
+    .from("users").select("id, plan").eq("clerk_id", userId).single();
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();
+
+  if ("custom_domain" in body && body.custom_domain) {
+    const canUseCustomDomain = PLAN_LIMITS[user.plan as keyof typeof PLAN_LIMITS]?.customDomains ?? false;
+    if (!canUseCustomDomain) {
+      return NextResponse.json({ error: "Custom domains require Pro plan or higher." }, { status: 403 });
+    }
+  }
+
   const allowed = ["custom_domain", "title", "description"];
   const updates: Record<string, unknown> = {};
   for (const key of allowed) {

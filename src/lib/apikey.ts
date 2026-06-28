@@ -1,9 +1,9 @@
 import * as crypto from "crypto";
 import { getSupabaseAdmin } from "./supabase";
+import { PLAN_LIMITS } from "./utils";
 
 const PREFIX = "uw_";
 
-/** Generate a new API key. Returns the plaintext key (shown once) and the hash to store. */
 export function generateApiKey(): { plaintext: string; hash: string; prefix: string } {
   const raw = crypto.randomBytes(32).toString("hex");
   const plaintext = PREFIX + raw;
@@ -12,12 +12,10 @@ export function generateApiKey(): { plaintext: string; hash: string; prefix: str
   return { plaintext, hash, prefix };
 }
 
-/** Hash an incoming key for lookup. */
 export function hashApiKey(key: string): string {
   return crypto.createHash("sha256").update(key).digest("hex");
 }
 
-/** Validate an API key from the Authorization header. Returns the user_id or null. */
 export async function validateApiKey(authHeader: string | null): Promise<string | null> {
   if (!authHeader || !authHeader.startsWith("Bearer uw_")) return null;
   const key = authHeader.slice("Bearer ".length);
@@ -31,7 +29,15 @@ export async function validateApiKey(authHeader: string | null): Promise<string 
 
   if (!data) return null;
 
-  // Update last_used_at async (fire and forget)
+  const { data: user } = await getSupabaseAdmin()
+    .from("users")
+    .select("plan")
+    .eq("id", data.user_id)
+    .single();
+
+  const allowed = PLAN_LIMITS[user?.plan as keyof typeof PLAN_LIMITS]?.apiAccess ?? false;
+  if (!allowed) return null;
+
   getSupabaseAdmin()
     .from("api_keys")
     .update({ last_used_at: new Date().toISOString() })
