@@ -1,3 +1,5 @@
+![Uptime](https://uptimewatch-alpha.vercel.app/api/badge/262f94fd-c6ae-4ca9-9616-ee7e24971230)
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
