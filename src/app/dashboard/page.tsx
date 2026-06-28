@@ -5,7 +5,7 @@ import { useUser, UserButton } from "@clerk/nextjs";
 import { Activity, Plus, Trash2, Pause, Play, ExternalLink, BarChart2, Settings, Globe, Check, X } from "lucide-react";
 import Link from "next/link";
 import { Monitor } from "@/lib/supabase";
-import { cn, formatResponseTime, getStatusBg, PLAN_LIMITS } from "@/lib/utils";
+import { cn, getStatusBg, PLAN_LIMITS } from "@/lib/utils";
 import AddMonitorModal from "@/components/AddMonitorModal";
 import CreateStatusPageModal from "@/components/CreateStatusPageModal";
 
@@ -104,6 +104,7 @@ export default function DashboardPage() {
   const plan = (dbUser?.plan ?? "free") as keyof typeof PLAN_LIMITS;
   const monitorLimit = PLAN_LIMITS[plan]?.monitors ?? 10;
   const spLimit = PLAN_LIMITS[plan]?.statusPages ?? 1;
+  const canCustomDomain = PLAN_LIMITS[plan]?.customDomains ?? false;
   const upCount = monitors.filter((m) => m.status === "up").length;
   const downCount = monitors.filter((m) => m.status === "down").length;
   const spAtLimit = spLimit !== null && statusPages.length >= spLimit;
@@ -278,12 +279,19 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => domainEditing === sp.id ? cancelDomainEdit() : startDomainEdit(sp)}
-                        className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 px-3 py-1.5 border border-gray-700 hover:border-gray-500 rounded-lg"
-                        title="Custom domain"
+                        onClick={() => canCustomDomain ? (domainEditing === sp.id ? cancelDomainEdit() : startDomainEdit(sp)) : undefined}
+                        disabled={!canCustomDomain}
+                        className={cn(
+                          "flex items-center gap-1.5 text-sm px-3 py-1.5 border rounded-lg",
+                          canCustomDomain
+                            ? "text-gray-400 hover:text-gray-200 border-gray-700 hover:border-gray-500"
+                            : "text-gray-600 border-gray-800 cursor-not-allowed"
+                        )}
+                        title={canCustomDomain ? "Custom domain" : "Custom domains require Pro plan or higher — upgrade to use this feature"}
                       >
                         <Globe size={14} />
                         {sp.custom_domain ? "Domain" : "Add domain"}
+                        {!canCustomDomain && <span className="text-xs text-gray-600 ml-0.5">Pro</span>}
                       </button>
                       <a href={"/status/" + sp.slug} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300 px-3 py-1.5 border border-gray-700 rounded-lg">
                         View
@@ -356,24 +364,26 @@ export default function DashboardPage() {
           monitors={monitors}
           onClose={() => setShowStatusPage(false)}
           onCreated={(sp) => { setStatusPages((prev) => [{ ...sp, custom_domain: null }, ...prev]); setShowStatusPage(false); }}
-        />
+               />
       )}
     </div>
   );
 }
 
 function UpgradeButton({ plan }: { plan: string }) {
-  async function handleUpgrade() {
-    const res = await fetch("/api/billing", {
-      method: "POST",
+  async function upgrade() {
+    const res = await fetch("/api/user", {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plan }),
     });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    if (res.ok) window.location.reload();
   }
   return (
-    <button onClick={handleUpgrade} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium text-sm shrink-0">
+    <button
+      onClick={upgrade}
+      className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap"
+    >
       Upgrade now
     </button>
   );
