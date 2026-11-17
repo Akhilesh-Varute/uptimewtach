@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Activity, ShieldCheck, ShieldAlert, ShieldOff, Webhook, SearchCheck, Copy, Check, Heart } from "lucide-react";
+import { ArrowLeft, ShieldCheck, ShieldAlert, ShieldOff, Webhook, SearchCheck, Copy, Check, Heart } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Monitor, MonitorCheck } from "@/lib/supabase";
 import { formatResponseTime, formatUptime, cn } from "@/lib/utils";
+import { LogoMark } from "@/components/Logo";
 import { Skeleton } from "@/components/Skeleton";
 
 type DetailData = {
@@ -79,7 +80,7 @@ export default function MonitorDetailPage() {
           <ArrowLeft size={16} /> Back
         </Link>
         <div className="flex items-center gap-2 font-bold">
-          <Activity className="text-blue-500" size={18} />
+          <LogoMark size={20} />
           UptimeWatch
         </div>
       </nav>

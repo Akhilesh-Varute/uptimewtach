@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { LogoMark } from "@/components/Logo";
 
 export function MarketingNav({ signedIn }: { signedIn: boolean }) {
   return (
     <header className="nav">
       <div className="nav__bar">
-        <Link href="/" className="nav__brand">UptimeWatch</Link>
+        <Link href="/" className="nav__brand"><LogoMark size={26} />UptimeWatch</Link>
         <nav className="nav__links" aria-label="Main">
           <Link href="/pricing">Pricing</Link>
           {signedIn ? (

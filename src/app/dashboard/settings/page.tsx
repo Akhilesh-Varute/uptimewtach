@@ -1,9 +1,10 @@
 "use client";
 
+import { LogoMark } from "@/components/Logo";
 import { Skeleton } from "@/components/Skeleton";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Activity, Plus, Trash2, Copy, Check, Key } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Copy, Check, Key } from "lucide-react";
 
 type ApiKey = {
   id: string;
@@ -71,7 +72,7 @@ export default function SettingsPage() {
           <ArrowLeft size={16} /> Back
         </Link>
         <div className="flex items-center gap-2 font-bold">
-          <Activity className="text-blue-500" size={18} />
+          <LogoMark size={20} />
           UptimeWatch
         </div>
       </nav>

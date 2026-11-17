@@ -6,6 +6,7 @@ import { Activity, Plus, Trash2, Pause, Play, ExternalLink, BarChart2, Settings,
 import Link from "next/link";
 import { Monitor } from "@/lib/supabase";
 import { cn, PLAN_LIMITS } from "@/lib/utils";
+import { LogoMark } from "@/components/Logo";
 import { Skeleton, MonitorRowSkeleton } from "@/components/Skeleton";
 import AddMonitorModal from "@/components/AddMonitorModal";
 import CreateStatusPageModal from "@/components/CreateStatusPageModal";
@@ -114,7 +115,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-950 text-gray-100">
       <nav className="border-b border-gray-800 px-6 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-          <Activity className="text-blue-500" size={20} />
+          <LogoMark size={22} />
           UptimeWatch
         </Link>
         <div className="flex items-center gap-4">

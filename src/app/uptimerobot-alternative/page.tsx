@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckCircle } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import { MarketingNav, MarketingFooter } from "../marketing-chrome";
 

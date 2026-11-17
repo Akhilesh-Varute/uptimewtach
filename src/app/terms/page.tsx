@@ -18,7 +18,7 @@ export default async function TermsPage() {
         <h2 className="text-lg font-semibold text-ink pt-4">Billing</h2>
         <p>Paid plans are billed monthly through Lemon Squeezy and can be cancelled at any time. The Free plan is free with no card required.</p>
         <h2 className="text-lg font-semibold text-ink pt-4">No guarantee</h2>
-        <p>We work to keep checks and alerts reliable but provide the service "as is", without any uptime guarantee. We are not liable for losses caused by missed or delayed alerts.</p>
+        <p>We work to keep checks and alerts reliable but provide the service &quot;as is&quot;, without any uptime guarantee. We are not liable for losses caused by missed or delayed alerts.</p>
         <h2 className="text-lg font-semibold text-ink pt-4">Changes</h2>
         <p>We may update these terms or the service. Continued use after changes means you accept them.</p>
       </div>
