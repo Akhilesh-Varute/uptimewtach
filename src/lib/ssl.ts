@@ -1,4 +1,5 @@
 import * as tls from "tls";
+import { assertPublicHost, safeLookup } from "./netguard";
 
 export type SslResult = {
   expiresAt: Date | null;
@@ -19,6 +20,12 @@ export async function checkSslCert(url: string): Promise<SslResult> {
     return { expiresAt: null, daysRemaining: null, issuer: null, error: "invalid-url" };
   }
 
+  try {
+    await assertPublicHost(hostname);
+  } catch {
+    return { expiresAt: null, daysRemaining: null, issuer: null, error: "blocked" };
+  }
+
   return new Promise((resolve) => {
     let settled = false;
     function done(result: SslResult) {
@@ -36,6 +43,7 @@ export async function checkSslCert(url: string): Promise<SslResult> {
       {
         host: hostname,
         port: 443,
+        lookup: safeLookup,
         servername: hostname,       // SNI — required for CDNs and virtual hosting
         rejectUnauthorized: false,  // get cert even if expired or self-signed
       },

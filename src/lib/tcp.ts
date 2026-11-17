@@ -1,4 +1,5 @@
 import * as net from "net";
+import { assertPublicHost, safeLookup } from "./netguard";
 
 export type TcpResult = {
   status: "up" | "down";
@@ -6,7 +7,12 @@ export type TcpResult = {
   error_message: string | null;
 };
 
-export function checkTcp(host: string, port: number, timeoutMs = 10000): Promise<TcpResult> {
+export async function checkTcp(host: string, port: number, timeoutMs = 10000): Promise<TcpResult> {
+  try {
+    await assertPublicHost(host);
+  } catch (e) {
+    return { status: "down", response_time_ms: null, error_message: e instanceof Error ? e.message : "Blocked" };
+  }
   return new Promise((resolve) => {
     const start = Date.now();
     const socket = new net.Socket();
@@ -21,7 +27,7 @@ export function checkTcp(host: string, port: number, timeoutMs = 10000): Promise
 
     socket.setTimeout(timeoutMs);
 
-    socket.connect(port, host, () => {
+    socket.connect({ port, host, lookup: safeLookup }, () => {
       finish({
         status: "up",
         response_time_ms: Date.now() - start,

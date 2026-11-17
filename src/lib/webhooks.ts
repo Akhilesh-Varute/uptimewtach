@@ -46,6 +46,8 @@ function buildGenericBody(p: WebhookPayload): object {
   };
 }
 
+import { assertPublicHost } from "./netguard";
+
 export async function sendWebhook(
   webhookUrl: string,
   payload: WebhookPayload
@@ -60,7 +62,9 @@ export async function sendWebhook(
   }
 
   try {
+    await assertPublicHost(new URL(webhookUrl).hostname);
     await fetch(webhookUrl, {
+      redirect: "error",
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

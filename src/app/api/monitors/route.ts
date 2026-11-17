@@ -2,7 +2,15 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { PLAN_LIMITS } from "@/lib/utils";
+import { assertPublicHost } from "@/lib/netguard";
 import * as crypto from "crypto";
+
+
+async function blockedTarget(host: string): Promise<string | null> {
+  try { await assertPublicHost(host); return null; } catch (e) {
+    return e instanceof Error && e.message.startsWith("Blocked") ? e.message : "Host could not be resolved";
+  }
+}
 
 export async function GET() {
   const { userId } = await auth();
@@ -81,6 +89,8 @@ export async function POST(req: NextRequest) {
     if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
       return NextResponse.json({ error: "Invalid port number" }, { status: 400 });
     }
+    const tcpBlocked = await blockedTarget(String(host));
+    if (tcpBlocked) return NextResponse.json({ error: tcpBlocked }, { status: 400 });
     const { data, error } = await getSupabaseAdmin()
       .from("monitors")
       .insert({
@@ -102,9 +112,12 @@ export async function POST(req: NextRequest) {
   if (!url) return NextResponse.json({ error: "url is required" }, { status: 400 });
 
   if (webhook_url) {
-    try { new URL(webhook_url); } catch {
+    let hookHost: string;
+    try { hookHost = new URL(webhook_url).hostname; } catch {
       return NextResponse.json({ error: "Invalid webhook URL" }, { status: 400 });
     }
+    const hookBlocked = await blockedTarget(hookHost);
+    if (hookBlocked) return NextResponse.json({ error: hookBlocked }, { status: 400 });
   }
 
   let parsedUrl: URL;
@@ -114,6 +127,8 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
   }
+  const urlBlocked = await blockedTarget(parsedUrl.hostname);
+  if (urlBlocked) return NextResponse.json({ error: urlBlocked }, { status: 400 });
 
   const { data, error } = await getSupabaseAdmin()
     .from("monitors")

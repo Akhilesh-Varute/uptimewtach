@@ -1,4 +1,7 @@
 import axios from "axios";
+import * as http from "http";
+import * as https from "https";
+import { assertPublicHost, assertPublicLiteral, safeLookup } from "./netguard";
 import { getSupabaseAdmin, Monitor } from "./supabase";
 import { sendDownAlert, sendUpAlert, sendSslExpiryAlert } from "./email";
 import { checkSslCert, getSslAlertThreshold } from "./ssl";
@@ -18,10 +21,14 @@ export async function checkUrl(
 ): Promise<CheckResult> {
   const start = Date.now();
   try {
+    await assertPublicHost(new URL(url).hostname);
     const response = await axios.get(url, {
       timeout: 10000,
       validateStatus: (s) => s < 500,
       maxRedirects: 5,
+      httpAgent: new http.Agent({ lookup: safeLookup }),
+      httpsAgent: new https.Agent({ lookup: safeLookup }),
+      beforeRedirect: (opts) => assertPublicLiteral(String(opts.hostname ?? "")),
       headers: { "User-Agent": "UptimeWatch/1.0 Monitoring Bot" },
     });
     const elapsed = Date.now() - start;
