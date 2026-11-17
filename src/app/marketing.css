@@ -81,7 +81,7 @@ html, body { overflow-x: clip; }
 .seams > * { background: var(--color-paper-2); min-width: 0; }
 .bento { grid-template-columns: repeat(12, minmax(0, 1fr)); }
 .tile { display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-xl); min-height: 280px; padding: var(--space-xl); }
-.tile p { color: var(--color-muted); max-width: 40ch; }
+.tile p { color: var(--color-muted); max-width: 46ch; }
 .tile--lead h3 { font-size: var(--text-section); max-width: 12ch; }
 .s6 { grid-column: span 6; } .s3 { grid-column: span 3; }
 .reading { display: grid; grid-template-columns: repeat(2, minmax(0, auto)); justify-content: start; gap: var(--space-xl); }
@@ -155,4 +155,10 @@ html, body { overflow-x: clip; }
 .nav__links a { white-space: nowrap; }
 @media (max-width: 40rem) { .nav__links a[href="/pricing"] { display: none; } .nav__bar { padding-left: var(--space-md); } }
 
+.hm button:active:not(:disabled), .hm a.btn:active { transform: translateY(1px); }
+.hm button:disabled, .hm [aria-disabled="true"] { cursor: not-allowed; }
+.skeleton { position: relative; overflow: hidden; background: var(--color-paper-2); border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-pill); }
+.skeleton::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 45%; background: color-mix(in oklab, var(--color-ink) 6%, transparent); transform: translateX(-100%); animation: skeleton-sweep 1.3s var(--ease-in-out) infinite; }
+@keyframes skeleton-sweep { to { transform: translateX(260%); } }
+@media (prefers-reduced-motion: reduce) { .skeleton::after { animation: none; transform: none; width: 100%; opacity: 0.5; } }
 }

@@ -199,7 +199,7 @@ export default function AddMonitorModal({ onClose, onAdded }: Props) {
           >
             <ChevronDown
               size={15}
-              className={"transition-transform " + (showAdvanced ? "rotate-180" : "")}
+              className={"transition-transform motion-reduce:transition-none " + (showAdvanced ? "rotate-180" : "")}
             />
             Advanced options
           </button>
@@ -246,7 +246,7 @@ export default function AddMonitorModal({ onClose, onAdded }: Props) {
               Cancel
             </button>
             <button type="submit" disabled={loading} className="flex-1 bg-accent hover:bg-accent/90 text-accent-ink py-2 rounded-lg text-sm font-medium disabled:opacity-50">
-              {loading ? "Adding..." : "Add Monitor"}
+              {loading ? "Adding…" : "Add Monitor"}
             </button>
           </div>
         </form>

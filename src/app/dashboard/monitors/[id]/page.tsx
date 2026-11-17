@@ -6,7 +6,8 @@ import Link from "next/link";
 import { ArrowLeft, Activity, ShieldCheck, ShieldAlert, ShieldOff, Webhook, SearchCheck, Copy, Check, Heart } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Monitor, MonitorCheck } from "@/lib/supabase";
-import { formatResponseTime, formatUptime, getStatusBg, cn } from "@/lib/utils";
+import { formatResponseTime, formatUptime, cn } from "@/lib/utils";
+import { Skeleton } from "@/components/Skeleton";
 
 type DetailData = {
   monitor: Monitor;
@@ -40,7 +41,14 @@ export default function MonitorDetailPage() {
   }
 
   if (!data) return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center text-gray-400">Loading...</div>
+    <div className="min-h-screen bg-gray-950" aria-busy="true">
+      <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+        <p className="text-gray-500 text-sm">Loading monitor…</p>
+        <Skeleton className="h-8 w-64" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4"><Skeleton className="h-20" /><Skeleton className="h-20" /><Skeleton className="h-20" /><Skeleton className="h-20" /></div>
+        <Skeleton className="h-64" />
+      </div>
+    </div>
   );
 
   const { monitor, checks, incidents } = data;
@@ -78,13 +86,12 @@ export default function MonitorDetailPage() {
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         <div className="flex items-center gap-3 mb-8">
-          <div className={cn("w-4 h-4 rounded-full", getStatusBg(monitor.status))} />
-          <div>
+                    <div>
             <h1 className="text-2xl font-bold">{monitor.name}</h1>
             {isTcp ? (
               <span className="text-blue-400 text-sm">{monitor.host}:{monitor.port} (TCP)</span>
             ) : isHeartbeat ? (
-              <span className="text-pink-400 text-sm">Heartbeat — every {Math.round((monitor.interval_seconds ?? 300) / 60)}m</span>
+              <span className="text-pink-400 text-sm">Heartbeat, every {Math.round((monitor.interval_seconds ?? 300) / 60)}m</span>
             ) : (
               <a href={monitor.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline text-sm">{monitor.url}</a>
             )}
@@ -136,7 +143,6 @@ export default function MonitorDetailPage() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-8 flex flex-wrap items-center gap-6">
           {isTcp ? (
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-blue-400" />
               <div>
                 <div className="text-xs text-gray-500">TCP / Port</div>
                 <div className="text-sm font-medium text-blue-300">{monitor.host}:{monitor.port}</div>
@@ -149,7 +155,7 @@ export default function MonitorDetailPage() {
                   <ShieldOff size={16} className="text-gray-500" />
                   <div>
                     <div className="text-xs text-gray-500">SSL certificate</div>
-                    <div className="text-sm font-medium text-gray-500">Not monitored — URL is HTTP</div>
+                    <div className="text-sm font-medium text-gray-500">Not monitored: URL is HTTP</div>
                   </div>
                 </div>
               )}
@@ -225,8 +231,8 @@ export default function MonitorDetailPage() {
                 <XAxis dataKey="time" tick={{ fill: "#9ca3af", fontSize: 11 }} interval="preserveStartEnd" />
                 <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} unit="ms" width={55} />
                 <Tooltip
-                  contentStyle={{ background: "#111827", border: "1px solid #374151", borderRadius: 8 }}
-                  labelStyle={{ color: "#9ca3af" }}
+                  contentStyle={{ background: "var(--color-paper-2)", border: "1px solid var(--color-rule-2)", borderRadius: 8 }}
+                  labelStyle={{ color: "var(--color-muted)" }}
                   formatter={(val) => [val + "ms", "Response"]}
                 />
                 <Line type="monotone" dataKey="ms" stroke="#3b82f6" strokeWidth={2} dot={false} />

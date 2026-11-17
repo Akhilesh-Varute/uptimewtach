@@ -5,7 +5,8 @@ import { useUser, UserButton } from "@clerk/nextjs";
 import { Activity, Plus, Trash2, Pause, Play, ExternalLink, BarChart2, Settings, Globe, Check, X } from "lucide-react";
 import Link from "next/link";
 import { Monitor } from "@/lib/supabase";
-import { cn, getStatusBg, PLAN_LIMITS } from "@/lib/utils";
+import { cn, PLAN_LIMITS } from "@/lib/utils";
+import { Skeleton, MonitorRowSkeleton } from "@/components/Skeleton";
 import AddMonitorModal from "@/components/AddMonitorModal";
 import CreateStatusPageModal from "@/components/CreateStatusPageModal";
 
@@ -163,15 +164,15 @@ export default function DashboardPage() {
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div className="text-gray-400 text-sm mb-1">Total Monitors</div>
-            <div className="text-3xl font-bold">{monitors.length}<span className="text-gray-500 text-lg">/{monitorLimit}</span></div>
+            {loading ? <Skeleton className="h-9 w-20" /> : <div className="text-3xl font-bold">{monitors.length}<span className="text-gray-500 text-lg">/{monitorLimit}</span></div>}
           </div>
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div className="text-gray-400 text-sm mb-1">Operational</div>
-            <div className="text-3xl font-bold text-green-400">{upCount}</div>
+            {loading ? <Skeleton className="h-9 w-12" /> : <div className="text-3xl font-bold text-green-400">{upCount}</div>}
           </div>
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div className="text-gray-400 text-sm mb-1">Down</div>
-            <div className="text-3xl font-bold text-red-400">{downCount}</div>
+            {loading ? <Skeleton className="h-9 w-12" /> : <div className="text-3xl font-bold text-red-400">{downCount}</div>}
           </div>
         </div>
 
@@ -183,7 +184,10 @@ export default function DashboardPage() {
         )}
 
         {loading ? (
-          <div className="text-center py-20 text-gray-500">Loading...</div>
+          <div className="space-y-3" aria-busy="true">
+            <p className="text-gray-500 text-sm">Checking your monitors…</p>
+            <MonitorRowSkeleton /><MonitorRowSkeleton /><MonitorRowSkeleton />
+          </div>
         ) : monitors.length === 0 ? (
           <div className="text-center py-20">
             <Activity size={40} className="mx-auto text-gray-700 mb-4" />
@@ -196,19 +200,18 @@ export default function DashboardPage() {
           <div className="space-y-3">
             {monitors.map((m) => (
               <div key={m.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
-                <div className={cn("w-3 h-3 rounded-full shrink-0", getStatusBg(m.status))} />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{m.name}</div>
                   <div className="text-gray-400 text-sm truncate">
                     {m.monitor_type === "tcp" ? m.host + ":" + m.port + " (TCP)" : m.url}
                   </div>
                 </div>
-                <div className={cn("text-xs font-semibold px-2 py-1 rounded shrink-0",
+                <div className={cn("text-xs font-semibold px-2 py-1 rounded shrink-0 capitalize",
                   m.status === "up" ? "bg-green-950 text-green-400" :
                   m.status === "down" ? "bg-red-950 text-red-400" :
                   "bg-gray-800 text-gray-400"
                 )}>
-                  {m.status.toUpperCase()}
+                  {m.status}
                 </div>
                 <div className="text-gray-500 text-xs w-24 text-right shrink-0">
                   {m.last_checked_at ? new Date(m.last_checked_at).toLocaleTimeString() : "Not checked"}
@@ -287,7 +290,7 @@ export default function DashboardPage() {
                             ? "text-gray-400 hover:text-gray-200 border-gray-700 hover:border-gray-500"
                             : "text-gray-600 border-gray-800 cursor-not-allowed"
                         )}
-                        title={canCustomDomain ? "Custom domain" : "Custom domains require Pro plan or higher — upgrade to use this feature"}
+                        title={canCustomDomain ? "Custom domain" : "Custom domains require Pro plan or higher. Upgrade to use this feature"}
                       >
                         <Globe size={14} />
                         {sp.custom_domain ? "Domain" : "Add domain"}
@@ -330,7 +333,7 @@ export default function DashboardPage() {
                       </div>
                       {sp.custom_domain && (
                         <p className="text-xs text-green-400 mt-2">
-                          Currently: <span className="font-mono">{sp.custom_domain}</span> — leave blank to remove.
+                          Currently: <span className="font-mono">{sp.custom_domain}</span>. Leave blank to remove.
                         </p>
                       )}
                       {domainError && <p className="text-xs text-red-400 mt-2">{domainError}</p>}
@@ -345,7 +348,7 @@ export default function DashboardPage() {
         {plan === "free" && dbUser !== null && (
           <div className="mt-12 bg-blue-950/30 border border-blue-800 rounded-xl p-6 flex items-center justify-between">
             <div>
-              <div className="font-semibold mb-1">Upgrade to Starter — $19/month</div>
+              <div className="font-semibold mb-1">Upgrade to Starter: $19/month</div>
               <div className="text-gray-400 text-sm">20 monitors, 1-minute checks, 3 status pages, 30-day history</div>
             </div>
             <UpgradeButton plan="starter" />

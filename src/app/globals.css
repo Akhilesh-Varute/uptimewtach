@@ -35,7 +35,7 @@ body {
 /* Existing pages are written with Tailwind's palette; inside .hm those names resolve to Console tokens. */
 .hm {
   --color-gray-950: var(--color-paper); --color-gray-900: var(--color-paper-2); --color-gray-800: var(--color-rule); --color-gray-700: var(--color-rule-2);
-  --color-gray-600: var(--color-muted); --color-gray-500: var(--color-muted); --color-gray-400: var(--color-muted);
+  --color-gray-600: color-mix(in oklab, var(--color-muted) 55%, var(--color-paper)); --color-gray-500: var(--color-muted); --color-gray-400: var(--color-muted);
   --color-gray-300: var(--color-ink-2); --color-gray-200: var(--color-ink); --color-gray-100: var(--color-ink); --color-white: var(--color-ink);
   --color-blue-300: var(--color-cool); --color-blue-400: var(--color-cool); --color-blue-500: var(--color-cool); --color-blue-600: var(--color-accent);
   --color-blue-800: var(--color-cool-soft); --color-blue-950: var(--color-cool-soft);

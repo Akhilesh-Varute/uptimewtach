@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton } from "@/components/Skeleton";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Activity, Plus, Trash2, Copy, Check, Key } from "lucide-react";
@@ -87,7 +88,7 @@ export default function SettingsPage() {
         {/* New key revealed */}
         {revealed && (
           <div className="bg-green-950 border border-green-700 rounded-xl p-4 mb-6">
-            <p className="text-green-400 text-sm font-medium mb-2">Key created — copy it now, it won&apos;t be shown again.</p>
+            <p className="text-green-400 text-sm font-medium mb-2">Key created. Copy it now, it won&apos;t be shown again.</p>
             <div className="flex items-center gap-2">
               <code className="flex-1 bg-gray-900 rounded-lg px-3 py-2 text-sm font-mono text-green-300 break-all">{revealed}</code>
               <button onClick={copyKey} className="shrink-0 p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white">
@@ -115,7 +116,7 @@ export default function SettingsPage() {
               className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-accent-ink px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 shrink-0"
             >
               <Plus size={15} />
-              {creating ? "Creating..." : "Create"}
+              {creating ? "Creating…" : "Create"}
             </button>
           </form>
           {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
@@ -124,18 +125,21 @@ export default function SettingsPage() {
         {/* Key list */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-800 text-sm text-gray-400 font-medium">
-            {loading ? "Loading..." : keys.length === 0 ? "No API keys yet" : `${keys.length} key${keys.length === 1 ? "" : "s"}`}
+            {loading ? "Loading keys…" : keys.length === 0 ? "No API keys yet" : `${keys.length} key${keys.length === 1 ? "" : "s"}`}
           </div>
+          {loading && (
+            <div className="px-5 py-4 space-y-3" aria-busy="true"><Skeleton className="h-4 w-48" /><Skeleton className="h-3 w-72 max-w-full" /></div>
+          )}
           {keys.map((k) => (
             <div key={k.id} className="flex items-center justify-between px-5 py-4 border-b border-gray-800 last:border-0">
               <div>
                 <div className="font-medium text-sm">{k.name}</div>
                 <div className="text-xs text-gray-500 mt-0.5">
-                  <code className="text-gray-400">{k.key_prefix}...</code>
-                  <span className="mx-2">·</span>
+                  <code className="text-gray-400">{k.key_prefix}…</code>
+                  <span className="mx-3 inline-block h-3 w-px bg-gray-700 align-middle" />
                   Created {new Date(k.created_at).toLocaleDateString()}
                   {k.last_used_at && (
-                    <><span className="mx-2">·</span>Last used {new Date(k.last_used_at).toLocaleDateString()}</>
+                    <><span className="mx-3 inline-block h-3 w-px bg-gray-700 align-middle" />Last used {new Date(k.last_used_at).toLocaleDateString()}</>
                   )}
                 </div>
               </div>

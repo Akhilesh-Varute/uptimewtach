@@ -97,7 +97,7 @@ export default function CreateStatusPageModal({ monitors, onClose, onCreated }: 
           {error && <p className="text-red-400 text-sm">{error}</p>}
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 border border-gray-700 text-gray-300 py-2 rounded-lg text-sm">Cancel</button>
-            <button type="submit" disabled={loading} className="flex-1 bg-accent hover:bg-accent/90 text-accent-ink py-2 rounded-lg text-sm font-medium disabled:opacity-50">{loading ? "Creating..." : "Create"}</button>
+            <button type="submit" disabled={loading} className="flex-1 bg-accent hover:bg-accent/90 text-accent-ink py-2 rounded-lg text-sm font-medium disabled:opacity-50">{loading ? "Creating…" : "Create"}</button>
           </div>
         </form>
       </div>
