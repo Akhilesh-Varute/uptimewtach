@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runChecks } from "@/lib/monitoring";
 
+// Failing targets are re-checked a few times, so allow the run to take longer than the default.
+export const maxDuration = 60;
+
 // Called every minute by cron-job.org (free) or Vercel Cron
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;

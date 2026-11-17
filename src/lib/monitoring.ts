@@ -15,6 +15,8 @@ type CheckResult = {
   error_message: string | null;
 };
 
+const REACHABLE_STATUSES = [401, 403, 429];
+
 export async function checkUrl(
   url: string,
   keyword?: string | null
@@ -32,7 +34,8 @@ export async function checkUrl(
       headers: { "User-Agent": "UptimeWatch/1.0 Monitoring Bot" },
     });
     const elapsed = Date.now() - start;
-    let isUp = response.status < 400;
+    // 401/403/429 mean the server answered but won't serve a bot (auth, WAF, rate limit): reachable, so up.
+    let isUp = response.status < 400 || REACHABLE_STATUSES.includes(response.status);
     let errorMessage: string | null = isUp ? null : "HTTP " + response.status;
 
     if (isUp && keyword) {
@@ -62,6 +65,24 @@ export async function checkUrl(
       error_message: message,
     };
   }
+}
+
+/**
+ * A single failed probe is often a blip (network, cold start, slow response) rather than an outage.
+ * Re-check a failing target a couple of times before reporting it down; any success wins.
+ * ponytail: retries run inside one cron call; consecutive-failure counting across runs needs a DB column.
+ */
+export async function confirmDown<T extends { status: "up" | "down" }>(
+  check: () => Promise<T>,
+  retries = 2,
+  delayMs = 2000
+): Promise<T> {
+  let result = await check();
+  for (let i = 0; i < retries && result.status === "down"; i++) {
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    result = await check();
+  }
+  return result;
 }
 
 export async function runChecks() {
@@ -96,7 +117,7 @@ async function processMonitor(monitor: Monitor) {
   let result: CheckResult;
 
   if (monitor.monitor_type === "tcp" && monitor.host && monitor.port) {
-    const tcp = await checkTcp(monitor.host, monitor.port);
+    const tcp = await confirmDown(() => checkTcp(monitor.host!, monitor.port!));
     result = {
       status: tcp.status,
       response_time_ms: tcp.response_time_ms,
@@ -104,7 +125,7 @@ async function processMonitor(monitor: Monitor) {
       error_message: tcp.error_message,
     };
   } else {
-    result = await checkUrl(monitor.url, monitor.keyword);
+    result = await confirmDown(() => checkUrl(monitor.url, monitor.keyword));
   }
 
   await getSupabaseAdmin().from("monitor_checks").insert({
