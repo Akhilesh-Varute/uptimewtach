@@ -17,6 +17,8 @@ const isPublicRoute = createRouteMatcher([
   "/api/badge/(.*)",
   "/freshping-alternative",
   "/uptimerobot-alternative",
+  "/privacy",
+  "/terms",
   "/sitemap.xml",
   "/pricing(.*)",
 ]);

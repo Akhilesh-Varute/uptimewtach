@@ -136,9 +136,6 @@ export default async function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-24">
           {plans.map((p) => (
             <div key={p.name} className={`rounded-xl p-6 border flex flex-col ${p.highlight ? "border-blue-500 bg-blue-950/20" : "border-gray-800 bg-gray-900"}`}>
-              {p.highlight && (
-                <div className="text-blue-400 text-xs font-semibold mb-3 uppercase tracking-widest">Most popular</div>
-              )}
               <div className="text-xl font-bold mb-1">{p.name}</div>
               <div className="flex items-end gap-1 mb-1">
                 <span className="text-4xl font-bold">{p.price}</span>
@@ -179,7 +176,7 @@ export default async function PricingPage() {
         {/* CTA */}
         <div className="text-center mt-20">
           <h2 className="text-2xl font-bold mb-4">Ready to get started?</h2>
-          <p className="text-gray-400 mb-8">Join developers and teams who trust UptimeWatch to monitor their sites.</p>
+          <p className="text-gray-400 mb-8">Set up your first monitor in under two minutes.</p>
           <Link href="/sign-up" className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold text-lg">
             Start free — no credit card required
           </Link>

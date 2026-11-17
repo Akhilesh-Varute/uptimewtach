@@ -123,6 +123,11 @@ export default async function StatusPage({ params }: { params: Promise<{ slug: s
             <Activity size={14} />
             Powered by UptimeWatch
           </div>
+          {slug === "demo" && (
+            <div className="inline-block bg-yellow-950 text-yellow-300 text-xs px-3 py-1 rounded-full mb-4">
+              Sample data for demonstration
+            </div>
+          )}
           <h1 className="text-3xl font-bold mb-2">{page.title}</h1>
           {page.description && <p className="text-gray-400">{page.description}</p>}
         </div>

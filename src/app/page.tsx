@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { Activity, Bell, Globe, BarChart2, CheckCircle } from "lucide-react";
+import { Activity, Bell, Globe, BarChart2, CheckCircle, Clock, ShieldCheck, Code, Award } from "lucide-react";
 
 export default async function HomePage() {
   const { userId } = await auth();
@@ -58,10 +58,14 @@ export default async function HomePage() {
       {/* Features */}
       <section className="max-w-5xl mx-auto px-6 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { icon: <Globe size={20} />, title: "HTTP Monitoring", desc: "Checks your URL every 1-5 minutes from multiple regions." },
-          { icon: <Bell size={20} />, title: "Instant Alerts", desc: "Email alert the moment your site goes down or comes back." },
-          { icon: <BarChart2 size={20} />, title: "Status Pages", desc: "Public status pages you can share with your customers." },
-          { icon: <CheckCircle size={20} />, title: "Uptime Reports", desc: "24h response time graphs and uptime percentage history." },
+          { icon: <Globe size={20} />, title: "HTTP & TCP Monitoring", desc: "Check URLs and ports every 1-5 minutes, depending on your plan." },
+          { icon: <Clock size={20} />, title: "Heartbeat Monitors", desc: "Your cron job pings us; we alert you if it stops." },
+          { icon: <ShieldCheck size={20} />, title: "SSL Expiry Alerts", desc: "Get warned before a certificate expires, not after." },
+          { icon: <Bell size={20} />, title: "Down & Recovery Alerts", desc: "Email when a monitor goes down and when it recovers. Webhooks on Pro and above." },
+          { icon: <BarChart2 size={20} />, title: "Public Status Pages", desc: "Share live status with customers. Custom domains on Pro and above." },
+          { icon: <CheckCircle size={20} />, title: "Uptime History", desc: "Response-time graphs and uptime percentage, 7 days to 1 year by plan." },
+          { icon: <Code size={20} />, title: "API Access", desc: "Manage monitors programmatically on Starter and above." },
+          { icon: <Award size={20} />, title: "Uptime Badge", desc: "Embed a live uptime badge in your README or site." },
         ].map((f) => (
           <div key={f.title} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <div className="text-blue-400 mb-3">{f.icon}</div>
@@ -89,7 +93,7 @@ export default async function HomePage() {
               name: "Starter",
               price: "$19",
               desc: "For indie developers",
-              features: ["20 monitors", "1-minute checks", "3 status pages", "Email alerts", "30-day history"],
+              features: ["20 monitors", "1-minute checks", "3 status pages", "Email alerts", "30-day history", "API access"],
               cta: "Get started",
               href: "/sign-up",
               highlight: true,
@@ -98,7 +102,7 @@ export default async function HomePage() {
               name: "Pro",
               price: "$49",
               desc: "For growing teams",
-              features: ["100 monitors", "1-minute checks", "Unlimited status pages", "Email & webhook alerts", "90-day history"],
+              features: ["100 monitors", "1-minute checks", "Unlimited status pages", "Email & webhook alerts", "90-day history", "API access", "Custom domains"],
               cta: "Get started",
               href: "/sign-up",
               highlight: false,
@@ -107,14 +111,13 @@ export default async function HomePage() {
               name: "Business",
               price: "$99",
               desc: "For large teams",
-              features: ["500 monitors", "1-minute checks", "Unlimited status pages", "Email & webhook alerts", "1-year history"],
+              features: ["500 monitors", "1-minute checks", "Unlimited status pages", "Email & webhook alerts", "1-year history", "API access", "Custom domains"],
               cta: "Get started",
               href: "/sign-up",
               highlight: false,
             },
           ].map((p) => (
             <div key={p.name} className={"rounded-xl p-6 border flex flex-col " + (p.highlight ? "border-blue-500 bg-blue-950/30" : "border-gray-800 bg-gray-900")}>
-              {p.highlight && <div className="text-blue-400 text-xs font-semibold mb-2 uppercase tracking-wide">Most popular</div>}
               <div className="text-2xl font-bold mb-1">{p.name}</div>
               <div className="text-4xl font-bold mb-1">{p.price}<span className="text-gray-400 text-lg font-normal">/mo</span></div>
               <div className="text-gray-400 text-sm mb-6">{p.desc}</div>
@@ -144,6 +147,8 @@ export default async function HomePage() {
           <Link href="/pricing" className="hover:text-gray-300">Pricing</Link>
           <Link href="/freshping-alternative" className="hover:text-gray-300">Freshping Alternative</Link>
           <Link href="/uptimerobot-alternative" className="hover:text-gray-300">UptimeRobot Alternative</Link>
+          <Link href="/privacy" className="hover:text-gray-300">Privacy</Link>
+          <Link href="/terms" className="hover:text-gray-300">Terms</Link>
         </div>
       </footer>
     </div>
