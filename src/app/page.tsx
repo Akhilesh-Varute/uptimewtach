@@ -1,156 +1,158 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { Activity, Bell, Globe, BarChart2, CheckCircle, Clock, ShieldCheck, Code, Award } from "lucide-react";
+import { fontClass } from "./marketing-fonts";
+import { MarketingNav, MarketingFooter } from "./marketing-chrome";
+import { plans } from "./marketing-data";
+import "./marketing.css";
+
+// Sample rows mirror the /status/demo page; downtime days are fixed so the picture is stable.
+const sample = [
+  { name: "Website", ms: "142 ms", pct: "99.98%", up: true, down: [41] },
+  { name: "API", ms: "89 ms", pct: "99.91%", up: true, down: [17, 52] },
+  { name: "Dashboard", ms: "", pct: "97.30%", up: false, down: [8, 23, 24, 44, 59] },
+  { name: "CDN", ms: "23 ms", pct: "100.00%", up: true, down: [] as number[] },
+];
 
 export default async function HomePage() {
   const { userId } = await auth();
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
-      {/* Nav */}
-      <nav className="border-b border-gray-800 px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
-        <div className="flex items-center gap-2 font-bold text-xl">
-          <Activity className="text-blue-500" size={22} />
-          UptimeWatch
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/pricing" className="text-gray-400 hover:text-white text-sm">Pricing</Link>
-          {userId ? (
-            <Link href="/dashboard" className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
-              Dashboard
-            </Link>
-          ) : (
-            <>
-              <Link href="/sign-in" className="text-gray-400 hover:text-white text-sm">Sign in</Link>
-              <Link href="/sign-up" className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                Start free
-              </Link>
-            </>
-          )}
-        </div>
-      </nav>
+    <div className={`hm ${fontClass}`}>
+      <MarketingNav signedIn={!!userId} />
 
-      {/* Hero */}
-      <section className="max-w-4xl mx-auto px-6 pt-24 pb-20 text-center">
-        <div className="inline-flex items-center gap-2 bg-blue-950 text-blue-300 text-sm px-3 py-1 rounded-full mb-6">
-          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          Freshping shut down? We have you covered.
-        </div>
-        <h1 className="text-5xl font-bold mb-6 leading-tight">
-          Know when your site goes down.
-          <br />
-          <span className="text-blue-400">Before your users do.</span>
-        </h1>
-        <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-          Simple uptime monitoring and public status pages for developers and small teams.
-          Get email alerts in seconds. No complex setup.
-        </p>
-        <div className="flex items-center justify-center gap-4">
-          <Link href="/sign-up" className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold text-lg">
-            Start free — 10 monitors
-          </Link>
-          <Link href="/status/demo" className="border border-gray-700 hover:border-gray-500 text-gray-300 px-8 py-3 rounded-lg font-semibold text-lg">
-            See demo status page
-          </Link>
-        </div>
-        <p className="text-gray-500 text-sm mt-4">No credit card required</p>
-      </section>
-
-      {/* Features */}
-      <section className="max-w-5xl mx-auto px-6 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { icon: <Globe size={20} />, title: "HTTP & TCP Monitoring", desc: "Check URLs and ports every 1-5 minutes, depending on your plan." },
-          { icon: <Clock size={20} />, title: "Heartbeat Monitors", desc: "Your cron job pings us; we alert you if it stops." },
-          { icon: <ShieldCheck size={20} />, title: "SSL Expiry Alerts", desc: "Get warned before a certificate expires, not after." },
-          { icon: <Bell size={20} />, title: "Down & Recovery Alerts", desc: "Email when a monitor goes down and when it recovers. Webhooks on Pro and above." },
-          { icon: <BarChart2 size={20} />, title: "Public Status Pages", desc: "Share live status with customers. Custom domains on Pro and above." },
-          { icon: <CheckCircle size={20} />, title: "Uptime History", desc: "Response-time graphs and uptime percentage, 7 days to 1 year by plan." },
-          { icon: <Code size={20} />, title: "API Access", desc: "Manage monitors programmatically on Starter and above." },
-          { icon: <Award size={20} />, title: "Uptime Badge", desc: "Embed a live uptime badge in your README or site." },
-        ].map((f) => (
-          <div key={f.title} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <div className="text-blue-400 mb-3">{f.icon}</div>
-            <h3 className="font-semibold mb-2">{f.title}</h3>
-            <p className="text-gray-400 text-sm">{f.desc}</p>
+      <main>
+        <section className="hero">
+          <h1>Know it&rsquo;s down before your users do.</h1>
+          <p className="lead">Uptime monitoring and public status pages for developers and small teams.</p>
+          <div className="hero__actions">
+            <Link href="/sign-up" className="btn btn--primary">Start free: 10 monitors</Link>
+            <Link href="/status/demo" className="btn">See demo status page</Link>
           </div>
-        ))}
-      </section>
+          <p className="hero__note muted">Freshping shut down? We have you covered.</p>
+        </section>
 
-      {/* Pricing */}
-      <section className="max-w-6xl mx-auto px-6 pb-24" id="pricing">
-        <h2 className="text-3xl font-bold text-center mb-12">Simple pricing</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            {
-              name: "Free",
-              price: "$0",
-              desc: "Perfect to start",
-              features: ["10 monitors", "5-minute checks", "1 status page", "Email alerts", "7-day history"],
-              cta: "Start free",
-              href: "/sign-up",
-              highlight: false,
-            },
-            {
-              name: "Starter",
-              price: "$19",
-              desc: "For indie developers",
-              features: ["20 monitors", "1-minute checks", "3 status pages", "Email alerts", "30-day history", "API access"],
-              cta: "Get started",
-              href: "/sign-up",
-              highlight: true,
-            },
-            {
-              name: "Pro",
-              price: "$49",
-              desc: "For growing teams",
-              features: ["100 monitors", "1-minute checks", "Unlimited status pages", "Email & webhook alerts", "90-day history", "API access", "Custom domains"],
-              cta: "Get started",
-              href: "/sign-up",
-              highlight: false,
-            },
-            {
-              name: "Business",
-              price: "$99",
-              desc: "For large teams",
-              features: ["500 monitors", "1-minute checks", "Unlimited status pages", "Email & webhook alerts", "1-year history", "API access", "Custom domains"],
-              cta: "Get started",
-              href: "/sign-up",
-              highlight: false,
-            },
-          ].map((p) => (
-            <div key={p.name} className={"rounded-xl p-6 border flex flex-col " + (p.highlight ? "border-blue-500 bg-blue-950/30" : "border-gray-800 bg-gray-900")}>
-              <div className="text-2xl font-bold mb-1">{p.name}</div>
-              <div className="text-4xl font-bold mb-1">{p.price}<span className="text-gray-400 text-lg font-normal">/mo</span></div>
-              <div className="text-gray-400 text-sm mb-6">{p.desc}</div>
-              <ul className="space-y-2 mb-8 flex-1">
-                {p.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
-                    <CheckCircle size={14} className="text-green-400 shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href={p.href} className={"block text-center py-2 rounded-lg font-medium text-sm " + (p.highlight ? "bg-blue-600 hover:bg-blue-500 text-white" : "border border-gray-700 hover:border-gray-500 text-gray-300")}>
-                {p.cta}
-              </Link>
+        <section className="sec--tight" aria-label="Sample status page">
+          <div className="container">
+            <div className="panel">
+              <div className="panel__head">
+                <h2>Sample status page</h2>
+                <span className="chip chip--cool">Sample data</span>
+              </div>
+              <p className="panel__banner">Some systems are experiencing issues</p>
+              {sample.map((m) => (
+                <div className="mon" key={m.name}>
+                  <span className="mon__name">{m.name}</span>
+                  <div className="mon__bars" aria-hidden="true">
+                    {Array.from({ length: 60 }, (_, i) => (
+                      <i key={i} className={m.down.includes(i) ? "dn" : undefined} />
+                    ))}
+                  </div>
+                  <span className="num mon__ms">{m.ms}</span>
+                  <span className="num">{m.pct}</span>
+                  <span className={`mon__state mon__state--${m.up ? "up" : "down"}`}>{m.up ? "Up" : "Down"}</span>
+                </div>
+              ))}
+              <div className="panel__foot">
+                <small>Sample data from the demo status page.</small>
+                <Link href="/status/demo" className="link"><small>Open the demo</small></Link>
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-800 px-6 py-8 text-center text-gray-500 text-sm">
-        <div className="flex items-center justify-center gap-2 mb-3 font-semibold text-gray-300">
-          <Activity size={16} className="text-blue-500" />
-          UptimeWatch
-        </div>
-        <div className="flex items-center justify-center gap-6">
-          <Link href="/pricing" className="hover:text-gray-300">Pricing</Link>
-          <Link href="/freshping-alternative" className="hover:text-gray-300">Freshping Alternative</Link>
-          <Link href="/uptimerobot-alternative" className="hover:text-gray-300">UptimeRobot Alternative</Link>
-          <Link href="/privacy" className="hover:text-gray-300">Privacy</Link>
-          <Link href="/terms" className="hover:text-gray-300">Terms</Link>
-        </div>
-      </footer>
+        <section className="sec" aria-labelledby="features">
+          <div className="container">
+            <div className="sec__head">
+              <h2 id="features">What it watches</h2>
+            </div>
+            <div className="seams bento">
+              <article className="tile tile--lead s6">
+                <h3>HTTP &amp; TCP Monitoring</h3>
+                <div>
+                  <div className="reading">
+                    <div><b>1 min</b><small>Paid plans</small></div>
+                    <div><b>5 min</b><small>Free plan</small></div>
+                  </div>
+                  <p style={{ marginTop: "var(--space-lg)" }}>Check URLs and ports every 1-5 minutes, depending on your plan.</p>
+                </div>
+              </article>
+              <article className="tile s3">
+                <h3>Heartbeat Monitors</h3>
+                <p>Your cron job pings us; we alert you if it stops.</p>
+              </article>
+              <article className="tile s3">
+                <h3>SSL Expiry Alerts</h3>
+                <p>Get warned before a certificate expires, not after.</p>
+              </article>
+              <article className="tile s3">
+                <h3>Down &amp; Recovery Alerts</h3>
+                <p>Email when a monitor goes down and when it recovers. Webhooks on Pro and above.</p>
+              </article>
+              <article className="tile s3">
+                <h3>Public Status Pages</h3>
+                <p>Share live status with customers. Custom domains on Pro and above.</p>
+              </article>
+              <article className="tile s6">
+                <h3>Uptime History</h3>
+                <div>
+                  <div className="chips">
+                    <span className="chip">7 days</span>
+                    <span className="chip">30 days</span>
+                    <span className="chip">90 days</span>
+                    <span className="chip chip--cool">1 year</span>
+                  </div>
+                  <p style={{ marginTop: "var(--space-lg)" }}>Response-time graphs and uptime percentage, 7 days to 1 year by plan.</p>
+                </div>
+              </article>
+              <article className="tile s6">
+                <h3>API Access</h3>
+                <p>Manage monitors programmatically on Starter and above.</p>
+              </article>
+              <article className="tile s6">
+                <h3>Uptime Badge</h3>
+                <div>
+                  <div className="badge-slot">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/api/badge/262f94fd-c6ae-4ca9-9616-ee7e24971230" alt="UptimeWatch uptime badge for this project" />
+                  </div>
+                  <p style={{ marginTop: "var(--space-lg)" }}>Embed a live uptime badge in your README or site.</p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section className="sec" id="pricing" aria-labelledby="pricing-head">
+          <div className="container">
+            <div className="sec__head">
+              <h2 id="pricing-head">Simple pricing</h2>
+              <p className="lead">Start free. Upgrade when you need more.</p>
+            </div>
+            <div className="seams plans">
+              {plans.map((p) => (
+                <article className="plan" key={p.name}>
+                  <div>
+                    <h3>{p.name}</h3>
+                    <small>{p.desc}</small>
+                  </div>
+                  <p className="plan__price">{p.price}<small>/mo</small></p>
+                  <ul>
+                    <li>{p.monitors}</li>
+                    <li>{p.checks}</li>
+                    <li>{p.pages}</li>
+                    <li>{p.alerts}</li>
+                    <li>{p.history}</li>
+                    {p.api && <li>API access</li>}
+                    {p.domains && <li>Custom domains</li>}
+                  </ul>
+                  <Link href={p.href} className={p.name === "Free" ? "btn btn--primary" : "btn"}>{p.cta}</Link>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <MarketingFooter />
     </div>
   );
 }

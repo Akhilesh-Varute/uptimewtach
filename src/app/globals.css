@@ -1,6 +1,13 @@
+/* Hallmark · shape: Showcase-led product page (draw swapped: Stat-Led refused, no real figures) · genre: modern-minimal · theme: Console (deal 1/3, seed uptime-monitoring-public-status-1b7c·ac8a07d7·2026-11-17·r0) · redesign: full
+ * hero: Corridor · nav: floating bar · footer: mast · imagery: the product (sample status page, live badge) · signature: the sample status page, a sample-data record at full fidelity · console: graphite · scope: marketing pages only (.hm), dashboard untouched
+ * axes: dark/grotesk-sans/chromatic-amber · posture: restrained · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · reworded "Know when your site goes down. Before your users do." to "Know it's down before your users do." and "Start free — 10 monitors" to "Start free: 10 monitors" · 58 and 19 name them · dropped "Get email alerts in seconds. No complex setup." and the hero "No credit card required" · 58 and 19 name them · weakest: S, the pricing panels repeat one skeleton four times so the comparison table carries the detail on /pricing */
 @import "tailwindcss";
+@import "./tokens.css";
 
+/* kept from the original stylesheet: the dashboard still uses it */
 :root {
+  --font-legacy: Arial, Helvetica, sans-serif;
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -22,5 +29,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-legacy);
 }
