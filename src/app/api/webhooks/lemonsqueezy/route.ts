@@ -4,8 +4,10 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 
 function verifySignature(body: string, signature: string): boolean {
   const secret = process.env.LS_WEBHOOK_SECRET!;
-  const hmac = crypto.createHmac("sha256", secret).update(body).digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(signature));
+  const hmac = Buffer.from(crypto.createHmac("sha256", secret).update(body).digest("hex"));
+  const given = Buffer.from(signature);
+  // timingSafeEqual throws on different lengths; a missing or wrong-length signature should be a clean 400
+  return given.length === hmac.length && crypto.timingSafeEqual(hmac, given);
 }
 
 const PLAN_BY_VARIANT: Record<string, string> = {
@@ -30,13 +32,13 @@ export async function POST(req: NextRequest) {
     const userId = event.meta?.custom_data?.user_id;
     const variantId = String(attrs?.variant_id ?? attrs?.first_order_item?.variant_id ?? "");
     const plan = PLAN_BY_VARIANT[variantId];
-    const subscriptionId = String(event.data?.id ?? "");
+    // An order's id is not the subscription's id. Only subscription_created may store it,
+    // or a late order_created would overwrite it and cancellations would never match this user.
+    const update: { plan: string; stripe_subscription_id?: string } = { plan };
+    if (eventName === "subscription_created") update.stripe_subscription_id = String(event.data?.id ?? "");
 
     if (userId && plan) {
-      await getSupabaseAdmin()
-        .from("users")
-        .update({ plan, stripe_subscription_id: subscriptionId })
-        .eq("id", userId);
+      await getSupabaseAdmin().from("users").update(update).eq("id", userId);
     }
   }
 
