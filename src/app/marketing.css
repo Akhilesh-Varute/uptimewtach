@@ -1,3 +1,4 @@
+@layer components {
 html, body { overflow-x: clip; }
 :root:has(.hm) { scrollbar-color: var(--color-muted) var(--color-paper); }
 
@@ -153,3 +154,5 @@ html, body { overflow-x: clip; }
 .hm .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .nav__links a { white-space: nowrap; }
 @media (max-width: 40rem) { .nav__links a[href="/pricing"] { display: none; } .nav__bar { padding-left: var(--space-md); } }
+
+}

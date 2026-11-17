@@ -151,7 +151,7 @@ export default function DashboardPage() {
                 "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium",
                 monitors.length >= monitorLimit
                   ? "bg-gray-800 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-500 text-white"
+                  : "bg-accent hover:bg-accent/90 text-accent-ink"
               )}
             >
               <Plus size={16} />
@@ -188,7 +188,7 @@ export default function DashboardPage() {
           <div className="text-center py-20">
             <Activity size={40} className="mx-auto text-gray-700 mb-4" />
             <p className="text-gray-400 mb-4">No monitors yet. Add your first URL to start monitoring.</p>
-            <button onClick={() => setShowAdd(true)} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium">
+            <button onClick={() => setShowAdd(true)} className="bg-accent hover:bg-accent/90 text-accent-ink px-6 py-2 rounded-lg font-medium">
               Add your first monitor
             </button>
           </div>
@@ -319,7 +319,7 @@ export default function DashboardPage() {
                         <button
                           onClick={() => saveDomain(sp.id)}
                           disabled={domainSaving}
-                          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+                          className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-accent-ink px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
                         >
                           <Check size={14} />
                           {domainSaving ? "Saving…" : "Save"}
@@ -388,7 +388,7 @@ function UpgradeButton({ plan }: { plan: string }) {
   return (
     <button
       onClick={upgrade}
-      className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap"
+      className="bg-accent hover:bg-accent/90 text-accent-ink px-5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap"
     >
       Upgrade now
     </button>

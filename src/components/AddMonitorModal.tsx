@@ -91,7 +91,7 @@ export default function AddMonitorModal({ onClose, onAdded }: Props) {
                 key={t.key}
                 type="button"
                 onClick={() => setMonitorType(t.key)}
-                className={"flex-1 py-2 font-medium transition-colors " + (monitorType === t.key ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-200")}
+                className={"flex-1 py-2 font-medium transition-colors " + (monitorType === t.key ? "bg-accent text-accent-ink" : "text-gray-400 hover:text-gray-200")}
               >
                 {t.label}
               </button>
@@ -245,7 +245,7 @@ export default function AddMonitorModal({ onClose, onAdded }: Props) {
             <button type="button" onClick={onClose} className="flex-1 border border-gray-700 hover:border-gray-500 text-gray-300 py-2 rounded-lg text-sm">
               Cancel
             </button>
-            <button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">
+            <button type="submit" disabled={loading} className="flex-1 bg-accent hover:bg-accent/90 text-accent-ink py-2 rounded-lg text-sm font-medium disabled:opacity-50">
               {loading ? "Adding..." : "Add Monitor"}
             </button>
           </div>

@@ -3,7 +3,6 @@ import { auth } from "@clerk/nextjs/server";
 import { fontClass } from "./marketing-fonts";
 import { MarketingNav, MarketingFooter } from "./marketing-chrome";
 import { plans } from "./marketing-data";
-import "./marketing.css";
 
 // Sample rows mirror the /status/demo page; downtime days are fixed so the picture is stable.
 const sample = [

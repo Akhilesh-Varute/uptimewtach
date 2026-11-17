@@ -3,7 +3,6 @@ import { auth } from "@clerk/nextjs/server";
 import { fontClass } from "../marketing-fonts";
 import { MarketingNav, MarketingFooter } from "../marketing-chrome";
 import { plans, faqs } from "../marketing-data";
-import "../marketing.css";
 
 const rows: { label: string; get: (p: (typeof plans)[number]) => string | boolean }[] = [
   { label: "Monitors", get: (p) => p.monitors },

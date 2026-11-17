@@ -112,7 +112,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={creating}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 shrink-0"
+              className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-accent-ink px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 shrink-0"
             >
               <Plus size={15} />
               {creating ? "Creating..." : "Create"}

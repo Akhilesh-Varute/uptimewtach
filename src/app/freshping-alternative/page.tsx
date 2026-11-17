@@ -1,23 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Activity, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
+import { MarketingNav, MarketingFooter } from "../marketing-chrome";
+
 
 export const metadata: Metadata = {
   title: "Best Freshping Alternative 2026 — Free Uptime Monitoring | UptimeWatch",
   description: "Freshping shut down in March 2026. UptimeWatch is a simple, free alternative with uptime monitoring and public status pages. Migrate in 2 minutes.",
 };
 
-export default function FreshpingAlternativePage() {
+export default async function FreshpingAlternativePage() {
+  const { userId } = await auth();
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
-      <nav className="border-b border-gray-800 px-6 py-4 flex items-center justify-between max-w-4xl mx-auto">
-        <Link href="/" className="flex items-center gap-2 font-bold">
-          <Activity className="text-blue-500" size={20} /> UptimeWatch
-        </Link>
-        <Link href="/sign-up" className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
-          Start free
-        </Link>
-      </nav>
+      <MarketingNav signedIn={!!userId} />
 
       <main className="max-w-3xl mx-auto px-6 py-16">
         <div className="inline-flex items-center gap-2 bg-red-950 text-red-300 text-sm px-3 py-1 rounded-full mb-6">
@@ -30,7 +27,7 @@ export default function FreshpingAlternativePage() {
           UptimeWatch is the simplest replacement — set up in under 2 minutes, free plan available.
         </p>
 
-        <Link href="/sign-up" className="inline-block bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold mb-16">
+        <Link href="/sign-up" className="inline-block bg-accent hover:bg-accent/90 text-accent-ink px-8 py-3 rounded-lg font-semibold mb-16">
           Migrate from Freshping — free →
         </Link>
 
@@ -48,7 +45,7 @@ export default function FreshpingAlternativePage() {
             <tbody>
               {[
                 ["Status", "❌ Shut down", "✅ Active"],
-                ["Free plan", "Was free", "✅ Free (3 monitors)"],
+                ["Free plan", "Was free", "✅ Free (10 monitors)"],
                 ["HTTP monitoring", "✅", "✅"],
                 ["Email alerts", "✅", "✅"],
                 ["Public status pages", "✅", "✅"],
@@ -75,7 +72,7 @@ export default function FreshpingAlternativePage() {
             "Set up a public status page and share the link.",
           ].map((step, i) => (
             <li key={i} className="flex items-start gap-3">
-              <span className="bg-blue-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0">{i + 1}</span>
+              <span className="bg-accent text-accent-ink text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0">{i + 1}</span>
               <span className="text-gray-300">{step}</span>
             </li>
           ))}
@@ -85,7 +82,7 @@ export default function FreshpingAlternativePage() {
         <h2 className="text-2xl font-bold mb-6">Simple, transparent pricing</h2>
         <div className="grid grid-cols-2 gap-4 mb-12">
           {[
-            { name: "Free", price: "$0/mo", features: ["3 monitors", "5-min checks", "1 status page"] },
+            { name: "Free", price: "$0/mo", features: ["10 monitors", "5-min checks", "1 status page"] },
             { name: "Starter", price: "$19/mo", features: ["20 monitors", "1-min checks", "3 status pages"] },
           ].map((p) => (
             <div key={p.name} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
@@ -112,7 +109,7 @@ export default function FreshpingAlternativePage() {
             },
             {
               q: "Is UptimeWatch really free?",
-              a: "Yes. The free plan includes 3 monitors, 5-minute checks, 1 status page, and email alerts — no credit card required.",
+              a: "Yes. The free plan includes 10 monitors, 5-minute checks, 1 status page, and email alerts — no credit card required.",
             },
             {
               q: "How fast are the checks?",
@@ -131,11 +128,12 @@ export default function FreshpingAlternativePage() {
         </div>
 
         <div className="text-center mt-16">
-          <Link href="/sign-up" className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold">
+          <Link href="/sign-up" className="bg-accent hover:bg-accent/90 text-accent-ink px-8 py-3 rounded-lg font-semibold">
             Start monitoring for free →
           </Link>
         </div>
       </main>
+      <MarketingFooter />
     </div>
   );
 }

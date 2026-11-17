@@ -51,7 +51,7 @@ export default function CreateStatusPageModal({ monitors, onClose, onCreated }: 
           <h2 className="text-lg font-semibold mb-2">Status page created!</h2>
           <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline break-all text-sm">{url}</a>
           <div className="mt-6">
-            <button onClick={onClose} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg text-sm font-medium">Done</button>
+            <button onClick={onClose} className="bg-accent hover:bg-accent/90 text-accent-ink px-6 py-2 rounded-lg text-sm font-medium">Done</button>
           </div>
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function CreateStatusPageModal({ monitors, onClose, onCreated }: 
           {error && <p className="text-red-400 text-sm">{error}</p>}
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 border border-gray-700 text-gray-300 py-2 rounded-lg text-sm">Cancel</button>
-            <button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">{loading ? "Creating..." : "Create"}</button>
+            <button type="submit" disabled={loading} className="flex-1 bg-accent hover:bg-accent/90 text-accent-ink py-2 rounded-lg text-sm font-medium disabled:opacity-50">{loading ? "Creating..." : "Create"}</button>
           </div>
         </form>
       </div>

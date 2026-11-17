@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Inter } from "next/font/google";
+import { fontClass } from "./marketing-fonts";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
+import "./marketing.css";
 
 export const metadata: Metadata = {
   title: "UptimeWatch — Simple Uptime Monitoring & Status Pages",
@@ -17,9 +16,27 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
-      <html lang="en" className={inter.className}>
-        <body className="min-h-screen bg-gray-950 text-gray-100">{children}</body>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "var(--color-accent)",
+          colorBackground: "var(--color-paper-2)",
+          colorForeground: "var(--color-ink)",
+          colorMutedForeground: "var(--color-muted)",
+          colorInput: "var(--color-paper-3)",
+          colorInputForeground: "var(--color-ink)",
+          colorPrimaryForeground: "var(--color-accent-ink)",
+          colorNeutral: "var(--color-ink)",
+          colorDanger: "var(--color-bad)",
+          colorSuccess: "var(--color-ok)",
+          borderRadius: "6px",
+          fontFamily: "var(--font-body)",
+        },
+        elements: { card: { border: "1px solid var(--color-rule)", boxShadow: "none" } },
+      }}
+    >
+      <html lang="en">
+        <body className={`hm ${fontClass} min-h-screen bg-gray-950 text-gray-100`}>{children}</body>
       </html>
     </ClerkProvider>
   );
