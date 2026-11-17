@@ -239,9 +239,9 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold">Status Pages</h2>
-              {spLimit !== null && (
-                <p className="text-gray-500 text-xs mt-0.5">{statusPages.length} / {spLimit} used</p>
-              )}
+              <p className="text-gray-500 text-xs mt-0.5">
+                {spLimit === null ? `${statusPages.length} used (unlimited)` : `${statusPages.length} / ${spLimit} used`}
+              </p>
             </div>
             <button
               onClick={() => setShowStatusPage(true)}
@@ -372,11 +372,17 @@ export default function DashboardPage() {
 
 function UpgradeButton({ plan }: { plan: string }) {
   async function upgrade() {
-    const res = await fetch("/api/user", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan }),
-    });
+    const headers = { "Content-Type": "application/json" };
+    const body = JSON.stringify({ plan });
+    if (process.env.NODE_ENV === "production") {
+      const res = await fetch("/api/billing", { method: "POST", headers, body });
+      const data = await res.json().catch(() => ({}));
+      if (data.url) window.location.href = data.url;
+      else alert(data.error || "Could not start checkout. Please try again.");
+      return;
+    }
+    // dev only: switch plan directly without payment
+    const res = await fetch("/api/user", { method: "PATCH", headers, body });
     if (res.ok) window.location.reload();
   }
   return (
