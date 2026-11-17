@@ -16,7 +16,7 @@ export default async function TermsPage() {
         <h2 className="text-lg font-semibold text-ink pt-4">Acceptable use</h2>
         <p>Only monitor sites and servers you own or have permission to monitor. Do not use the service to attack, probe or overload third-party systems, or for anything unlawful.</p>
         <h2 className="text-lg font-semibold text-ink pt-4">Billing</h2>
-        <p>Paid plans are billed monthly through Lemon Squeezy and can be cancelled at any time. The Free plan is free with no card required.</p>
+        <p>Paid plans are billed monthly through Dodo Payments, our payment provider and merchant of record, and can be cancelled at any time. The Free plan is free with no card required.</p>
         <h2 className="text-lg font-semibold text-ink pt-4">No guarantee</h2>
         <p>We work to keep checks and alerts reliable but provide the service &quot;as is&quot;, without any uptime guarantee. We are not liable for losses caused by missed or delayed alerts.</p>
         <h2 className="text-lg font-semibold text-ink pt-4">Changes</h2>

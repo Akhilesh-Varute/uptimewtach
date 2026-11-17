@@ -26,5 +26,5 @@ export const faqs = [
   { q: "What happens when I hit my monitor limit?", a: "You'll see a warning and won't be able to add more monitors until you upgrade or delete existing ones." },
   { q: "How do email alerts work?", a: "When a monitor goes down we send you an email instantly. When it recovers, you get another email." },
   { q: "Is there a free trial?", a: "The Free plan is free forever, no credit card required. Upgrade only when you need more." },
-  { q: "What payment methods do you accept?", a: "Credit/debit cards and PayPal via Lemon Squeezy. Secure checkout, no card details stored by us." },
+  { q: "What payment methods do you accept?", a: "Major credit/debit cards and other local payment methods, processed securely by Dodo Payments. We never store card details." },
 ];

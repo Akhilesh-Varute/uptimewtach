@@ -16,7 +16,7 @@ export default async function PrivacyPage() {
         <h2 className="text-lg font-semibold text-ink pt-4">How we use it</h2>
         <p>To run your monitors, send alerts and webhooks you configure, and display your status pages. We do not sell your data.</p>
         <h2 className="text-lg font-semibold text-ink pt-4">Third parties</h2>
-        <p>We use Clerk (authentication), Supabase (database), Resend (email delivery), Lemon Squeezy (payments) and Vercel (hosting). Payment details are handled by Lemon Squeezy; we do not store card numbers.</p>
+        <p>We use Clerk (authentication), Supabase (database), Resend (email delivery), Dodo Payments (payments) and Vercel (hosting). Payment details are handled by Dodo Payments; we do not store card numbers.</p>
         <h2 className="text-lg font-semibold text-ink pt-4">Retention and deletion</h2>
         <p>Check history is kept for the period of your plan. You can delete monitors at any time; to delete your account and data, contact us.</p>
         <h2 className="text-lg font-semibold text-ink pt-4">Contact</h2>

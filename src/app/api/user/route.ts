@@ -22,7 +22,7 @@ export async function POST() {
   return NextResponse.json(data);
 }
 
-// Dev-only plan switcher (in production this is handled by LemonSqueezy webhook)
+// Dev-only plan switcher (in production this is handled by the Dodo webhook)
 export async function PATCH(req: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
