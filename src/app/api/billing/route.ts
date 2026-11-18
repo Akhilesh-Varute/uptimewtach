@@ -18,9 +18,21 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   try {
-    const session = await dodo().checkoutSessions.create({
+    const client = dodo();
+    // A returning customer is attached by id so Dodo reuses their saved details and cards.
+    let customerId = user.stripe_customer_id;
+    if (!customerId) {
+      try {
+        customerId = (await client.customers.list({ email: user.email })).items[0]?.customer_id ?? null;
+        if (customerId) await getSupabaseAdmin().from("users").update({ stripe_customer_id: customerId }).eq("id", user.id);
+      } catch {
+        // lookup is best effort: fall back to a plain email checkout
+      }
+    }
+    const session = await client.checkoutSessions.create({
       product_cart: [{ product_id: productId, quantity: 1 }],
-      customer: { email: user.email },
+      customer: customerId ? { customer_id: customerId } : { email: user.email },
+      show_saved_payment_methods: !!customerId,
       metadata: { user_id: user.id, plan },
       return_url: `${APP_URL}/dashboard?upgraded=true`,
     });

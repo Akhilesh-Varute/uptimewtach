@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
 
   const db = getSupabaseAdmin();
-  const sub = event.data as { subscription_id?: string; product_id?: string; metadata?: Record<string, string> };
+  const sub = event.data as { customer?: { customer_id?: string }; subscription_id?: string; product_id?: string; metadata?: Record<string, string> };
   const subscriptionId = sub.subscription_id;
   if (!subscriptionId) return NextResponse.json({ received: true });
 
@@ -29,7 +29,8 @@ export async function POST(req: NextRequest) {
       const userId = sub.metadata?.user_id;
       if (!plan) break;
       // Reactivation after on_hold may arrive without our metadata: fall back to the stored subscription id.
-      const query = db.from("users").update({ plan, stripe_subscription_id: subscriptionId });
+      const customerId = sub.customer?.customer_id;
+      const query = db.from("users").update({ plan, stripe_subscription_id: subscriptionId, ...(customerId && { stripe_customer_id: customerId }) });
       await (userId ? query.eq("id", userId) : query.eq("stripe_subscription_id", subscriptionId));
       break;
     }
