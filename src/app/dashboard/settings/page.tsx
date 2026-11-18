@@ -2,6 +2,7 @@
 
 import { LogoMark } from "@/components/Logo";
 import { Skeleton } from "@/components/Skeleton";
+import PushToggle from "@/components/PushToggle";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Plus, Trash2, Copy, Check, Key, Loader2 } from "lucide-react";
@@ -92,6 +93,8 @@ export default function SettingsPage() {
             <p className="text-gray-400 text-sm">Use these keys to access the UptimeWatch REST API</p>
           </div>
         </div>
+
+        <PushToggle />
 
         {/* New key revealed */}
         {revealed && (

@@ -36,6 +36,16 @@ function buildDiscordBody(p: WebhookPayload): object {
   };
 }
 
+// Telegram: paste https://api.telegram.org/bot<token>/sendMessage?chat_id=<id>
+function buildTelegramBody(p: WebhookPayload, chatId: string): object {
+  const icon = p.event === "down" ? "🔴" : p.event === "up" ? "✅" : "⚠️";
+  const title =
+    p.event === "down" ? `${icon} ${p.monitorName} is DOWN`
+    : p.event === "up" ? `${icon} ${p.monitorName} is back UP`
+    : `${icon} ${p.monitorName}: SSL cert expiring`;
+  return { chat_id: chatId, text: [title, p.url, p.details].filter(Boolean).join("\n") };
+}
+
 function buildGenericBody(p: WebhookPayload): object {
   return {
     event: p.event,
@@ -57,6 +67,8 @@ export async function sendWebhook(
     body = buildSlackBody(payload);
   } else if (webhookUrl.includes("discord.com/api/webhooks")) {
     body = buildDiscordBody(payload);
+  } else if (webhookUrl.startsWith("https://api.telegram.org/bot")) {
+    body = buildTelegramBody(payload, new URL(webhookUrl).searchParams.get("chat_id") ?? "");
   } else {
     body = buildGenericBody(payload);
   }

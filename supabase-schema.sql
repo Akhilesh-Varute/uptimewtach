@@ -111,3 +111,15 @@ ALTER TABLE monitors ADD COLUMN IF NOT EXISTS heartbeat_token TEXT UNIQUE;
 ALTER TABLE monitors ADD COLUMN IF NOT EXISTS heartbeat_grace_seconds INTEGER DEFAULT 300;
 ALTER TABLE monitors ADD COLUMN IF NOT EXISTS heartbeat_last_pinged_at TIMESTAMPTZ;
 ALTER TABLE status_pages ADD COLUMN IF NOT EXISTS custom_domain TEXT UNIQUE;
+
+-- Browser (web push) notification subscriptions
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+  endpoint TEXT UNIQUE NOT NULL,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON push_subscriptions(user_id);
+ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;

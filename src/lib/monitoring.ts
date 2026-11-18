@@ -6,6 +6,7 @@ import { getSupabaseAdmin, Monitor } from "./supabase";
 import { sendDownAlert, sendUpAlert, sendSslExpiryAlert } from "./email";
 import { checkSslCert, getSslAlertThreshold } from "./ssl";
 import { sendWebhook } from "./webhooks";
+import { sendPush } from "./push";
 import { checkTcp } from "./tcp";
 
 type CheckResult = {
@@ -281,6 +282,7 @@ async function handleStatusChange(
       errorMessage: checkResult?.error_message ?? null,
       intervalSeconds: monitor.interval_seconds,
     });
+    await sendPush(monitor.user_id, { title: `${monitor.name} is DOWN`, body: monitorUrl });
     if (monitor.webhook_url) {
       await sendWebhook(monitor.webhook_url, {
         event: "down",
@@ -308,6 +310,7 @@ async function handleStatusChange(
     if (user) await sendUpAlert(user.email, monitor.name, monitorUrl, {
       downtimeStartedAt: incident?.started_at ?? null,
     });
+    await sendPush(monitor.user_id, { title: `${monitor.name} is back UP`, body: monitorUrl });
     if (monitor.webhook_url) {
       await sendWebhook(monitor.webhook_url, {
         event: "up",

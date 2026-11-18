@@ -209,7 +209,7 @@ export default function AddMonitorModal({ onClose, onAdded }: Props) {
               <div>
                 <label className="block text-sm text-gray-400 mb-1">
                   Webhook URL
-                  <span className="ml-2 text-xs text-gray-600">Slack, Discord, or any webhook</span>
+                  <span className="ml-2 text-xs text-gray-600">Slack, Discord, Telegram, or any webhook</span>
                 </label>
                 <input
                   type="url"
