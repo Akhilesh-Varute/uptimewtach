@@ -27,9 +27,10 @@ export async function POST(req: NextRequest) {
     case "subscription.active": {
       const plan = planForProduct(sub.product_id ?? "");
       const userId = sub.metadata?.user_id;
-      if (plan && userId) {
-        await db.from("users").update({ plan, stripe_subscription_id: subscriptionId }).eq("id", userId);
-      }
+      if (!plan) break;
+      // Reactivation after on_hold may arrive without our metadata: fall back to the stored subscription id.
+      const query = db.from("users").update({ plan, stripe_subscription_id: subscriptionId });
+      await (userId ? query.eq("id", userId) : query.eq("stripe_subscription_id", subscriptionId));
       break;
     }
     case "subscription.plan_changed": {
@@ -41,8 +42,11 @@ export async function POST(req: NextRequest) {
     case "subscription.expired":
     case "subscription.failed":
     case "subscription.on_hold": {
+      // on_hold can be reactivated, so keep the subscription id then; otherwise the later
+      // subscription.active could not find this user if it arrives without our metadata.
+      const ended = event.type !== "subscription.on_hold";
       const { data: user } = await db
-        .from("users").update({ plan: "free", stripe_subscription_id: null })
+        .from("users").update(ended ? { plan: "free", stripe_subscription_id: null } : { plan: "free" })
         .eq("stripe_subscription_id", subscriptionId).select("id").single();
       if (user) await enforcePlanLimits(user.id, "free");
       break;
