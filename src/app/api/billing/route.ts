@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin, User } from "@/lib/supabase";
 import { dodo, PRODUCT_BY_PLAN } from "@/lib/dodo";
@@ -18,21 +18,12 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   try {
-    const client = dodo();
-    // A returning customer is attached by id so Dodo reuses their saved details and cards.
-    let customerId = user.stripe_customer_id;
-    if (!customerId) {
-      try {
-        customerId = (await client.customers.list({ email: user.email })).items[0]?.customer_id ?? null;
-        if (customerId) await getSupabaseAdmin().from("users").update({ stripe_customer_id: customerId }).eq("id", user.id);
-      } catch {
-        // lookup is best effort: fall back to a plain email checkout
-      }
-    }
-    const session = await client.checkoutSessions.create({
+    const clerkUser = await currentUser();
+    const session = await dodo().checkoutSessions.create({
       product_cart: [{ product_id: productId, quantity: 1 }],
-      customer: customerId ? { customer_id: customerId } : { email: user.email },
-      show_saved_payment_methods: !!customerId,
+      // Dodo matches an existing customer by email; the name is prefilled from the account.
+      customer: { email: user.email, name: clerkUser?.fullName ?? undefined },
+      show_saved_payment_methods: true,
       metadata: { user_id: user.id, plan },
       return_url: `${APP_URL}/dashboard?upgraded=true`,
     });
