@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { fontClass } from "./marketing-fonts";
 import { MarketingNav, MarketingFooter } from "./marketing-chrome";
+import PlanButton from "@/components/PlanButton";
 import { plans } from "./marketing-data";
 
 // Sample rows mirror the /status/demo page; downtime days are fixed so the picture is stable.
@@ -143,7 +144,7 @@ export default async function HomePage() {
                     {p.api && <li>API access</li>}
                     {p.domains && <li>Custom domains</li>}
                   </ul>
-                  <Link href={p.href} className={p.name === "Free" ? "btn btn--primary" : "btn"}>{p.cta}</Link>
+                  <PlanButton name={p.name} cta={p.cta} href={p.href} signedIn={!!userId} className={p.name === "Free" ? "btn btn--primary" : "btn"} />
                 </article>
               ))}
             </div>

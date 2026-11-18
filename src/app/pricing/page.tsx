@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { fontClass } from "../marketing-fonts";
 import { MarketingNav, MarketingFooter } from "../marketing-chrome";
+import PlanButton from "@/components/PlanButton";
 import { plans, faqs } from "../marketing-data";
 
 const rows: { label: string; get: (p: (typeof plans)[number]) => string | boolean }[] = [
@@ -66,7 +67,7 @@ export default async function PricingPage() {
                     <td />
                     {plans.map((p) => (
                       <td key={p.name}>
-                        <Link href={p.href} className={p.name === "Free" ? "btn btn--primary" : "btn"}>{p.cta}</Link>
+                        <PlanButton name={p.name} cta={p.cta} href={p.href} signedIn={!!userId} className={p.name === "Free" ? "btn btn--primary" : "btn"} />
                       </td>
                     ))}
                   </tr>
