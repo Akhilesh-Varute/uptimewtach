@@ -70,6 +70,7 @@ export default function DashboardPage() {
       body: JSON.stringify({ is_active: !monitor.is_active }),
     });
     const updated = await res.json();
+    if (!res.ok) return alert(updated.error ?? "Could not update monitor");
     setMonitors((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
   }
 
@@ -179,7 +180,11 @@ export default function DashboardPage() {
 
         {monitors.length >= monitorLimit && (
           <div className="bg-yellow-950 border border-yellow-800 rounded-lg px-4 py-3 mb-6 flex items-center justify-between">
-            <span className="text-yellow-300 text-sm">Monitor limit reached for {plan} plan.</span>
+            <span className="text-yellow-300 text-sm">
+              {monitors.length > monitorLimit
+                ? `Your ${plan} plan runs ${monitorLimit} monitors; the rest are paused and keep their history. Upgrade, then resume them.`
+                : `Monitor limit reached for ${plan} plan.`}
+            </span>
             <Link href="/pricing" className="text-yellow-400 hover:text-yellow-300 text-sm font-medium underline">Upgrade</Link>
           </div>
         )}

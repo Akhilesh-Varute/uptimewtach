@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { dodo, planForProduct } from "@/lib/dodo";
+import { enforcePlanLimits } from "@/lib/plan";
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -39,9 +40,13 @@ export async function POST(req: NextRequest) {
     case "subscription.cancelled":
     case "subscription.expired":
     case "subscription.failed":
-    case "subscription.on_hold":
-      await db.from("users").update({ plan: "free", stripe_subscription_id: null }).eq("stripe_subscription_id", subscriptionId);
+    case "subscription.on_hold": {
+      const { data: user } = await db
+        .from("users").update({ plan: "free", stripe_subscription_id: null })
+        .eq("stripe_subscription_id", subscriptionId).select("id").single();
+      if (user) await enforcePlanLimits(user.id, "free");
       break;
+    }
   }
 
   return NextResponse.json({ received: true });
