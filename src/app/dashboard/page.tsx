@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [statusPages, setStatusPages] = useState<StatusPageItem[]>([]);
   const [dbUser, setDbUser] = useState<{ plan: string } | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [notice, setNotice] = useState("");
   const [showStatusPage, setShowStatusPage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [domainEditing, setDomainEditing] = useState<string | null>(null);
@@ -70,7 +71,7 @@ export default function DashboardPage() {
       body: JSON.stringify({ is_active: !monitor.is_active }),
     });
     const updated = await res.json();
-    if (!res.ok) return alert(updated.error ?? "Could not update monitor");
+    if (!res.ok) return setNotice(updated.error ?? "Could not update monitor");
     setMonitors((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
   }
 
@@ -362,6 +363,18 @@ export default function DashboardPage() {
         )}
       </main>
 
+      {notice && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" onClick={() => setNotice("")}>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-semibold mb-2">Monitor limit reached</h2>
+            <p className="text-gray-400 text-sm mb-6">{notice}</p>
+            <div className="flex justify-end gap-3">
+              <button autoFocus onClick={() => setNotice("")} className="px-4 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800">Close</button>
+              <Link href="/pricing" className="bg-accent hover:bg-accent/90 text-accent-ink px-4 py-2 rounded-lg text-sm font-medium">Upgrade</Link>
+            </div>
+          </div>
+        </div>
+      )}
       {showAdd && (
         <AddMonitorModal
           onClose={() => setShowAdd(false)}
