@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useUser, UserButton } from "@clerk/nextjs";
-import { Activity, Plus, Trash2, Pause, Play, ExternalLink, BarChart2, Settings, Globe, Check, X } from "lucide-react";
+import { Activity, Plus, Trash2, Pause, Play, ExternalLink, BarChart2, Settings, Globe, Check, X, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Monitor } from "@/lib/supabase";
 import { cn, PLAN_LIMITS } from "@/lib/utils";
@@ -20,6 +20,12 @@ export default function DashboardPage() {
   const [dbUser, setDbUser] = useState<{ plan: string } | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState<Set<string>>(new Set());
+
+  async function withBusy(id: string, fn: () => Promise<void>) {
+    setBusy((p) => new Set(p).add(id));
+    try { await fn(); } finally { setBusy((p) => { const n = new Set(p); n.delete(id); return n; }); }
+  }
   const [showStatusPage, setShowStatusPage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [domainEditing, setDomainEditing] = useState<string | null>(null);
@@ -32,9 +38,12 @@ export default function DashboardPage() {
     setMonitors(Array.isArray(m) ? m : []);
   }
 
-  async function deleteStatusPage(id: string) {
-    await fetch("/api/status-pages/" + id, { method: "DELETE" });
-    setStatusPages((prev) => prev.filter((p) => p.id !== id));
+  function deleteStatusPage(id: string) {
+    return withBusy(id, async () => {
+      const res = await fetch("/api/status-pages/" + id, { method: "DELETE" });
+      if (res.ok) setStatusPages((prev) => prev.filter((p) => p.id !== id));
+      else setNotice("Could not delete the status page. Please try again.");
+    });
   }
 
   useEffect(() => {
@@ -60,19 +69,24 @@ export default function DashboardPage() {
 
   async function deleteMonitor(id: string) {
     if (!confirm("Delete this monitor?")) return;
-    await fetch("/api/monitors/" + id, { method: "DELETE" });
-    setMonitors((prev) => prev.filter((m) => m.id !== id));
+    await withBusy(id, async () => {
+      const res = await fetch("/api/monitors/" + id, { method: "DELETE" });
+      if (res.ok) setMonitors((prev) => prev.filter((m) => m.id !== id));
+      else setNotice("Could not delete the monitor. Please try again.");
+    });
   }
 
-  async function toggleMonitor(monitor: Monitor) {
-    const res = await fetch("/api/monitors/" + monitor.id, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ is_active: !monitor.is_active }),
+  function toggleMonitor(monitor: Monitor) {
+    return withBusy(monitor.id, async () => {
+      const res = await fetch("/api/monitors/" + monitor.id, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: !monitor.is_active }),
+      });
+      const updated = await res.json().catch(() => ({}));
+      if (!res.ok) return setNotice(updated.error ?? "Could not update monitor");
+      setMonitors((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
     });
-    const updated = await res.json();
-    if (!res.ok) return setNotice(updated.error ?? "Could not update monitor");
-    setMonitors((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
   }
 
   function startDomainEdit(sp: StatusPageItem) {
@@ -227,15 +241,15 @@ export default function DashboardPage() {
                   <Link href={"/dashboard/monitors/" + m.id} className="p-2 hover:bg-gray-800 rounded-lg" title="View details">
                     <BarChart2 size={16} className="text-gray-400" />
                   </Link>
-                  <button onClick={() => toggleMonitor(m)} className="p-2 hover:bg-gray-800 rounded-lg" title={m.is_active ? "Pause" : "Resume"}>
-                    {m.is_active ? <Pause size={16} className="text-gray-400" /> : <Play size={16} className="text-green-400" />}
+                  <button onClick={() => toggleMonitor(m)} disabled={busy.has(m.id)} aria-busy={busy.has(m.id)} className="p-2 hover:bg-gray-800 rounded-lg disabled:opacity-60" title={m.is_active ? "Pause" : "Resume"}>
+                    {busy.has(m.id) ? <Loader2 size={16} className="text-gray-400 motion-safe:animate-spin" /> : m.is_active ? <Pause size={16} className="text-gray-400" /> : <Play size={16} className="text-green-400" />}
                   </button>
                   {m.monitor_type !== "tcp" && m.monitor_type !== "heartbeat" && (
                     <a href={m.url} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-gray-800 rounded-lg" title="Open URL">
                       <ExternalLink size={16} className="text-gray-400" />
                     </a>
                   )}
-                  <button onClick={() => deleteMonitor(m.id)} className="p-2 hover:bg-gray-800 rounded-lg" title="Delete">
+                  <button onClick={() => deleteMonitor(m.id)} disabled={busy.has(m.id)} className="p-2 hover:bg-gray-800 rounded-lg disabled:opacity-60" title="Delete">
                     <Trash2 size={16} className="text-red-400" />
                   </button>
                 </div>
@@ -306,8 +320,8 @@ export default function DashboardPage() {
                       <a href={"/status/" + sp.slug} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300 px-3 py-1.5 border border-gray-700 rounded-lg">
                         View
                       </a>
-                      <button onClick={() => deleteStatusPage(sp.id)} className="text-sm text-red-400 hover:text-red-300 px-3 py-1.5 border border-gray-800 rounded-lg">
-                        Delete
+                      <button onClick={() => deleteStatusPage(sp.id)} disabled={busy.has(sp.id)} className="text-sm text-red-400 hover:text-red-300 px-3 py-1.5 border border-gray-800 rounded-lg disabled:opacity-60">
+                        {busy.has(sp.id) ? "Deleting…" : "Delete"}
                       </button>
                     </div>
                   </div>
@@ -393,7 +407,12 @@ export default function DashboardPage() {
 }
 
 function UpgradeButton({ plan }: { plan: string }) {
+  const [loading, setLoading] = useState(false);
   async function upgrade() {
+    setLoading(true);
+    try { await startUpgrade(); } finally { setLoading(false); }
+  }
+  async function startUpgrade() {
     const headers = { "Content-Type": "application/json" };
     const body = JSON.stringify({ plan });
     if (process.env.NODE_ENV === "production") {
@@ -410,9 +429,10 @@ function UpgradeButton({ plan }: { plan: string }) {
   return (
     <button
       onClick={upgrade}
-      className="bg-accent hover:bg-accent/90 text-accent-ink px-5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap"
+      disabled={loading}
+      className="bg-accent hover:bg-accent/90 text-accent-ink px-5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap disabled:opacity-60"
     >
-      Upgrade now
+      {loading ? "Starting checkout…" : "Upgrade now"}
     </button>
   );
 }

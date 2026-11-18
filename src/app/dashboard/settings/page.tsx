@@ -4,7 +4,7 @@ import { LogoMark } from "@/components/Logo";
 import { Skeleton } from "@/components/Skeleton";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, Trash2, Copy, Check, Key } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Copy, Check, Key, Loader2 } from "lucide-react";
 
 type ApiKey = {
   id: string;
@@ -19,6 +19,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [newKeyName, setNewKeyName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
@@ -50,12 +51,18 @@ export default function SettingsPage() {
   }
 
   async function deleteKey(id: string) {
-    await fetch("/api/v1/keys", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    setKeys((prev) => prev.filter((k) => k.id !== id));
+    setDeleting(id);
+    try {
+      const res = await fetch("/api/v1/keys", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) setKeys((prev) => prev.filter((k) => k.id !== id));
+      else setError("Could not delete the key. Please try again.");
+    } finally {
+      setDeleting(null);
+    }
   }
 
   function copyKey() {
@@ -146,9 +153,10 @@ export default function SettingsPage() {
               </div>
               <button
                 onClick={() => deleteKey(k.id)}
-                className="p-2 hover:bg-gray-800 rounded-lg text-gray-500 hover:text-red-400 transition-colors"
+                disabled={deleting === k.id}
+                className="p-2 hover:bg-gray-800 rounded-lg text-gray-500 hover:text-red-400 transition-colors disabled:opacity-60"
               >
-                <Trash2 size={15} />
+                {deleting === k.id ? <Loader2 size={15} className="motion-safe:animate-spin" /> : <Trash2 size={15} />}
               </button>
             </div>
           ))}
