@@ -123,3 +123,6 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 );
 CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON push_subscriptions(user_id);
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- Saved billing address from the first payment, used to prefill later checkouts
+ALTER TABLE users ADD COLUMN IF NOT EXISTS billing_address JSONB;

@@ -57,6 +57,7 @@ export type User = {
   email: string;
   plan: "free" | "starter" | "pro" | "business";
   stripe_customer_id: string | null;
+  billing_address?: { country: string; city?: string | null; state?: string | null; street?: string | null; zipcode?: string | null } | null;
   stripe_subscription_id: string | null;
   created_at: string;
 };
