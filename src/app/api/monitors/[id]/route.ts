@@ -52,7 +52,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const allowed = ["name", "is_active", "webhook_url", "keyword"];
   const updates: Record<string, unknown> = {};
   for (const key of allowed) {
-    if (key in body) updates[key] = body[key] || null;
+    if (key in body) updates[key] = key === "is_active" ? !!body[key] : body[key] || null;
   }
 
   if (updates.is_active) {
