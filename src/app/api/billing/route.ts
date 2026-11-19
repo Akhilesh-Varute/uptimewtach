@@ -31,7 +31,9 @@ export async function POST(req: NextRequest) {
     });
     if (!session.checkout_url) return NextResponse.json({ error: "Failed to create checkout" }, { status: 500 });
     return NextResponse.json({ url: session.checkout_url });
-  } catch {
+  } catch (e) {
+    const err = e as { status?: number; message?: string };
+    console.error("billing: checkout failed", { plan, mode: process.env.DODO_PAYMENTS_ENVIRONMENT, status: err.status, message: err.message });
     return NextResponse.json({ error: "Payment service unavailable. Please try again." }, { status: 500 });
   }
 }
