@@ -135,7 +135,7 @@ export default function DashboardPage() {
           UptimeWatch
         </Link>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-400 capitalize">{plan} plan</span>
+          {dbUser ? <span className="text-sm text-gray-400 capitalize">{plan} plan</span> : <Skeleton className="h-4 w-16" />}
           <Link href="/dashboard/settings" className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors" title="Settings & API Keys">
             <Settings size={18} />
           </Link>
