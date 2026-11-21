@@ -14,6 +14,11 @@ const isPublicRoute = createRouteMatcher([
   "/api/status-pages/(.*)",
   "/api/heartbeat/(.*)",
   "/api/badge/(.*)",
+  // API-key and agent routes authenticate themselves; the session check would 404 them
+  "/api/v1/monitors(.*)",
+  "/api/v1/incidents(.*)",
+  "/api/mcp(.*)",
+  "/llms.txt",
   "/freshping-alternative",
   "/uptimerobot-alternative",
   "/privacy",

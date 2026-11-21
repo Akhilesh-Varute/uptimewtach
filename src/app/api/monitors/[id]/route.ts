@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { PLAN_LIMITS } from "@/lib/utils";
+import { activeLimitError } from "@/lib/monitors";
 
 async function getMonitorForUser(monitorId: string, clerkId: string) {
   const { data: user } = await getSupabaseAdmin()
@@ -56,13 +57,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   if (updates.is_active) {
-    const limit = PLAN_LIMITS[result.plan as keyof typeof PLAN_LIMITS]?.monitors ?? 10;
-    const { count } = await getSupabaseAdmin()
-      .from("monitors").select("id", { count: "exact", head: true })
-      .eq("user_id", result.monitor.user_id).eq("is_active", true);
-    if ((count ?? 0) >= limit) {
-      return NextResponse.json({ error: `Your ${result.plan} plan allows ${limit} active monitors. Pause another or upgrade.` }, { status: 403 });
-    }
+    const limitErr = await activeLimitError({ id: result.monitor.user_id, plan: result.plan });
+    if (limitErr) return NextResponse.json({ error: limitErr }, { status: 403 });
   }
 
   const { data, error } = await getSupabaseAdmin()

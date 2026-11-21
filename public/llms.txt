@@ -1,0 +1,24 @@
+# UptimeWatch
+
+> Uptime monitoring for websites, servers and scheduled jobs, with explained alerts (every down alert says the likely cause and next step), public status pages, and an MCP server so AI agents can manage monitoring for you.
+
+## For AI agents (MCP)
+
+- Endpoint: https://uptimewatch.akhileshvarute.me/api/mcp (Streamable HTTP)
+- Auth: `Authorization: Bearer uw_...` (create a key in Dashboard → Settings; Starter plan and up)
+- Tools:
+  - `list_monitors`: all monitors with status
+  - `get_monitor`: uptime, response time, recent checks, latest incident with cause
+  - `list_incidents`: recent outages with likely cause
+  - `create_monitor`: http, tcp or heartbeat (scheduled job) monitors
+  - `set_monitor_paused`: pause or resume
+  - `check_url_now`: one-off check of any public URL, explained in plain English
+
+## REST API
+
+- `GET /api/v1/monitors` and `GET /api/v1/monitors/{id}` with the same Bearer key.
+
+## Links
+
+- [Pricing](https://uptimewatch.akhileshvarute.me/pricing)
+- [Sign up](https://uptimewatch.akhileshvarute.me/sign-up)

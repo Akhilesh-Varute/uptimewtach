@@ -8,12 +8,15 @@ import { checkSslCert, getSslAlertThreshold } from "./ssl";
 import { sendWebhook } from "./webhooks";
 import { sendPush } from "./push";
 import { checkTcp } from "./tcp";
+import { diagnose, summarize } from "./diagnose";
+import { confirmWithRegions } from "./probes";
 
 type CheckResult = {
   status: "up" | "down";
   response_time_ms: number | null;
   status_code: number | null;
   error_message: string | null;
+  regions?: string | null; // multi-region summary, set when probes were consulted
 };
 
 const REACHABLE_STATUSES = [401, 403, 429];
@@ -59,10 +62,11 @@ export async function checkUrl(
   } catch (err: unknown) {
     const elapsed = Date.now() - start;
     const message = err instanceof Error ? err.message : "Unknown error";
+    const httpStatus = (err as { response?: { status?: number } }).response?.status ?? null;
     return {
       status: "down",
       response_time_ms: elapsed < 10000 ? elapsed : null,
-      status_code: null,
+      status_code: httpStatus,
       error_message: message,
     };
   }
@@ -88,14 +92,21 @@ export async function confirmDown<T extends { status: "up" | "down" }>(
 
 export async function runChecks() {
   const now = new Date();
-  const { data: monitors, error } = await getSupabaseAdmin()
-    .from("monitors")
-    .select("*")
-    .eq("is_active", true);
-
-  if (error || !monitors) {
-    console.error("Failed to fetch monitors:", error);
-    return;
+  // PostgREST returns at most 1,000 rows per request, so page through all active monitors.
+  const monitors: Monitor[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await getSupabaseAdmin()
+      .from("monitors")
+      .select("*")
+      .eq("is_active", true)
+      .order("id")
+      .range(from, from + 999);
+    if (error || !data) {
+      console.error("Failed to fetch monitors:", error);
+      return;
+    }
+    monitors.push(...(data as Monitor[]));
+    if (data.length < 1000) break;
   }
 
   const due = monitors.filter((m: Monitor) => {
@@ -127,6 +138,17 @@ async function processMonitor(monitor: Monitor) {
     };
   } else {
     result = await confirmDown(() => checkUrl(monitor.url, monitor.keyword));
+  }
+
+  // About to raise a new outage: make other regions agree first, so one region's network blip doesn't alert.
+  if (result.status === "down" && monitor.status === "up") {
+    const target = monitor.monitor_type === "tcp" && monitor.host && monitor.port
+      ? { kind: "tcp" as const, host: monitor.host, port: monitor.port }
+      : { kind: "http" as const, url: monitor.url, keyword: monitor.keyword };
+    const verdict = await confirmWithRegions(target);
+    result = verdict.confirmed
+      ? { ...result, regions: verdict.summary }
+      : { ...result, status: "up", error_message: `Primary region failed (${result.error_message}). ${verdict.summary}` };
   }
 
   await getSupabaseAdmin().from("monitor_checks").insert({
@@ -251,6 +273,22 @@ async function processSslCheck(monitor: Monitor) {
     .eq("id", monitor.id);
 }
 
+/** What recent history says about a monitor: when it last worked and how fast it usually answers. */
+async function recentEvidence(monitorId: string) {
+  const { data } = await getSupabaseAdmin()
+    .from("monitor_checks")
+    .select("response_time_ms, checked_at")
+    .eq("monitor_id", monitorId)
+    .eq("status", "up")
+    .order("checked_at", { ascending: false })
+    .limit(10);
+  const times = (data ?? []).map((c) => c.response_time_ms).filter((t): t is number => typeof t === "number");
+  return {
+    lastUpAt: data?.[0]?.checked_at ?? null,
+    typicalMs: times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : null,
+  };
+}
+
 async function handleStatusChange(
   monitor: Monitor,
   from: "up" | "down",
@@ -272,23 +310,35 @@ async function handleStatusChange(
       : monitor.url;
 
   if (to === "down") {
-    await getSupabaseAdmin().from("incidents").insert({
-      monitor_id: monitor.id,
-      started_at: now,
-      status: "ongoing",
+    const diagnosis = diagnose({
+      statusCode: checkResult?.status_code ?? null,
+      errorMessage: checkResult?.error_message ?? null,
+      responseTimeMs: checkResult?.response_time_ms ?? null,
+      sslDaysRemaining: monitor.ssl_days_remaining ?? null,
+      regions: checkResult?.regions ?? null,
+      ...(await recentEvidence(monitor.id)),
     });
+    const cause = summarize(diagnosis);
+
+    const incident = { monitor_id: monitor.id, started_at: now, status: "ongoing" };
+    const { error: insertErr } = await getSupabaseAdmin().from("incidents").insert({ ...incident, cause });
+    // ponytail: tolerate a database without the `cause` column yet; drop once the migration is run everywhere
+    if (insertErr) await getSupabaseAdmin().from("incidents").insert(incident);
+
     if (user) await sendDownAlert(user.email, monitor.name, monitorUrl, {
       statusCode: checkResult?.status_code ?? null,
       errorMessage: checkResult?.error_message ?? null,
       intervalSeconds: monitor.interval_seconds,
+      diagnosis,
     });
-    await sendPush(monitor.user_id, { title: `${monitor.name} is DOWN`, body: monitorUrl });
+    await sendPush(monitor.user_id, { title: `${monitor.name} is DOWN`, body: cause });
     if (monitor.webhook_url) {
       await sendWebhook(monitor.webhook_url, {
         event: "down",
         monitorName: monitor.name,
         url: monitorUrl,
         timestamp: now,
+        details: `${diagnosis.cause}: ${diagnosis.detail} Next step: ${diagnosis.nextStep}`,
       });
     }
   } else if (to === "up" && from === "down") {

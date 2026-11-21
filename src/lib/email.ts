@@ -71,6 +71,9 @@ function base(body: string): string {
 }
 
 // DOWN ALERT
+const escapeHtml = (t: string) =>
+  t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
 export async function sendDownAlert(
   to: string,
   monitorName: string,
@@ -80,6 +83,7 @@ export async function sendDownAlert(
     errorMessage?: string | null;
     responseTimeMs?: number | null;
     intervalSeconds?: number | null;
+    diagnosis?: { cause: string; detail: string; nextStep: string };
   }
 ) {
   const now = new Date();
@@ -87,11 +91,21 @@ export async function sendDownAlert(
   const dateStr = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" });
   const intervalLabel = opts?.intervalSeconds ? formatInterval(opts.intervalSeconds) : "a few minutes";
 
+  const d = opts?.diagnosis;
+  const diagnosisBlock = d
+    ? `<div style="background:#0f1117;border:1px solid #374151;border-left:3px solid #f5b83d;border-radius:8px;padding:14px 18px;margin-bottom:24px">
+        <div style="color:#9ca3af;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Likely cause</div>
+        <div style="color:#f9fafb;font-size:16px;font-weight:700;margin-bottom:6px">${escapeHtml(d.cause)}</div>
+        <div style="color:#d1d5db;font-size:13px;line-height:1.5;margin-bottom:8px">${escapeHtml(d.detail)}</div>
+        <div style="color:#f5b83d;font-size:13px"><strong>Next step:</strong> ${escapeHtml(d.nextStep)}</div>
+      </div>`
+    : "";
+
   const errorBlock = opts?.errorMessage
     ? `<tr><td colspan="2" style="padding:10px 0;border-bottom:1px solid #2d3748">
         <div style="color:#4a5568;font-size:12px;margin-bottom:4px">Error</div>
         <div style="background:#0f1117;border:1px solid #374151;border-radius:6px;padding:10px 12px">
-          <code style="color:#fc8181;font-size:12px;font-family:monospace">${opts.errorMessage}</code>
+          <code style="color:#fc8181;font-size:12px;font-family:monospace">${escapeHtml(opts.errorMessage)}</code>
         </div>
       </td></tr>`
     : "";
@@ -110,6 +124,8 @@ export async function sendDownAlert(
         <div style="color:#f9fafb;font-size:17px;font-weight:700">${monitorName}</div>
         <div style="color:#6b7280;font-size:12px;margin-top:3px;word-break:break-all">${url}</div>
       </div>
+
+      ${diagnosisBlock}
 
       <table width="100%" cellpadding="0" cellspacing="0">
         ${metaRow("&#128308;", "Status", "Down")}

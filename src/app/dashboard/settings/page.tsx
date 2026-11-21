@@ -3,6 +3,8 @@
 import { LogoMark } from "@/components/Logo";
 import { Skeleton } from "@/components/Skeleton";
 import PushToggle from "@/components/PushToggle";
+
+const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://uptimewatch.akhileshvarute.me";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Plus, Trash2, Copy, Check, Key, Loader2 } from "lucide-react";
@@ -177,6 +179,30 @@ curl https://uptimewatch.io/api/v1/monitors \\
 # Get a single monitor with uptime stats
 curl https://uptimewatch.io/api/v1/monitors/{id} \\
   -H "Authorization: Bearer uw_..."`}
+          </pre>
+        </div>
+        {/* Agents */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 mt-6">
+          <h2 className="font-semibold mb-1">Connect an AI agent</h2>
+          <p className="text-gray-400 text-sm mb-3">
+            Let Claude, Cursor, VS Code or any MCP client list, create, pause and investigate your monitors.
+            Use an API key from above. Try asking: &quot;Is my site down, and why?&quot;
+          </p>
+          <p className="text-gray-500 text-xs mb-1">Claude Code</p>
+          <pre className="bg-gray-950 rounded-lg p-3 text-sm text-gray-300 overflow-x-auto mb-3">
+{`claude mcp add --transport http uptimewatch ${APP}/api/mcp \
+  --header "Authorization: Bearer uw_..."`}
+          </pre>
+          <p className="text-gray-500 text-xs mb-1">Cursor / VS Code (mcp.json)</p>
+          <pre className="bg-gray-950 rounded-lg p-3 text-sm text-gray-300 overflow-x-auto">
+{`{
+  "mcpServers": {
+    "uptimewatch": {
+      "url": "${APP}/api/mcp",
+      "headers": { "Authorization": "Bearer uw_..." }
+    }
+  }
+}`}
           </pre>
         </div>
       </main>

@@ -126,3 +126,6 @@ ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Saved billing address from the first payment, used to prefill later checkouts
 ALTER TABLE users ADD COLUMN IF NOT EXISTS billing_address JSONB;
+
+-- Plain-English cause recorded when an incident starts (explained alerts)
+ALTER TABLE incidents ADD COLUMN IF NOT EXISTS cause TEXT;
